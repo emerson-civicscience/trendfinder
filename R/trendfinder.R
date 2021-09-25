@@ -1,0 +1,31 @@
+#' trendfinder
+#'
+#' For the purposes of this program, "banner" refers to the columns of a crosstab (i.e. answer choices
+#' running along the top) and "stem" refers to the rows (answer choices running down the left side). The stem answers
+#' can be thought of as "autoweighted" segments.
+#'
+#' For some reason I thought camelCase was the sort of default for Python coders, and since I was intending to start
+#' using Jupyter Notebooks around the time I created the trendfinder package using older versions of the code where
+#' I defaulted to snake_case, you will see a random mix of snake_case and modified camelCase* in the package. The
+#' case of a variable is, therefore, not in any way intended to be descriptive or show some sort of class (read: my
+#' consistency is very bad). Sadly, I learned after I was done that most Python coders use snake_case most of the time
+#' unless there's a valid reason (internal consistency or other accepted standards for variable names).
+#'
+#' Speaking of there being a trendfinder package--there's a trendfinder package! It's my first one and it is fairly
+#' involved, and I didn't take the trouble to learn proper documentation, create vignettes, or fully grok the interplay
+#' of libraries/dependencies, functions, @params, etc. I mean, even this documentation of an empty function as a sort
+#' of readme file is highly suspect. I'm happy to do things correctly if time allows and it is deemed necessary, but as
+#' this is something of a stop-gap I'm not going to do it presently.
+#'
+#' *I wanted to include acronyms in my variable names, which I guess is generally frowned upon but when it's
+#' something like "US Geography" I think it's not too vague. However, I kept coming across cases like "US Adults".
+#' USAdults, usAdults, UsAdults all look strange to me. Enter: gonCase. gonCase emphasizes readability of obvious
+#' abbreviations by requiring capitalization of the abbreviation and that any leading or trailing letters are lower case.
+#' gonCase: whenAcronymsAreDesiredAndUnderscoresAreLoathedWithLessWTFfactor
+#'
+#' @param so many
+#' @return all the insights
+#' @examples
+trendfinder <- function() {
+  # find the trends
+}
