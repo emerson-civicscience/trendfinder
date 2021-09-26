@@ -5,8 +5,8 @@ TFdateHandler <- function(data_start_dates, data_end_dates){
     data_end_dates <- data_start_dates %>%
       .[-1] %>%
       c(., as.character(ymd(data_start_dates)+1))
-
-    return(data_end_dates)
   }
+
+  return(data_end_dates)
 
 }

@@ -1,3 +1,3 @@
-#' @import civicscienceR dplyr tibble devtools parallel gtools utf8 stringr tidyverse tidyr xlsx lubridate
+#' @import civicscienceR data.table dplyr tibble devtools parallel gtools utf8 stringr tidyverse tidyr xlsx lubridate
 #' @import reticulate
 NULL

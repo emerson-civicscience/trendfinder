@@ -5,7 +5,6 @@ TFcrosstab <- function(crosstabRow,
                        crosstabResults = NULL,
                        fulLCrosstabResults = NULL,
                        geography = USgeography,
-                       weights = NULL,
                        useStemAndBannerPrecondition = NULL,
                        useStemPrecondition = NULL){
 
@@ -63,6 +62,15 @@ TFcrosstab <- function(crosstabRow,
                                    geography)
   }
 
+  scheme_name <- crosstabRow[3]
+  weights <- weightingDict[which(weightingDict$scheme_name == scheme_name),2][[1]][[1]]
+
+  age_gender_precondition <- TFageGenderPrecondition(weights)
+
+  if(!is.null(age_gender_precondition)){
+    crosstabPrecondition <- paste0(age_gender_precondition, "^", crosstabPrecondition)
+  }
+
   crosstabResults <- lapply(crosstabPrecondition, crosstabTable,
                             question.ids = c(stemQuestion, bannerQuestion, 484, 7078),
                             row.answer.group.ids = stemIDs,
@@ -72,11 +80,14 @@ TFcrosstab <- function(crosstabRow,
                             weights = weights)
 
   crosstabResults <- lapply(crosstabResults, as.data.table) %>%
-    do.call(rbind, .) %>%
-    setcolorder(., c("startDate", "endDate",
-                     "data.stem", "data.banner",
-                     "data.response.count", "total.responses"))
+    do.call(rbind, .)
   names(crosstabResults) <- gsub("data.", "", names(crosstabResults))
+
+  crosstabResults$weights <- scheme_name
+
+  setcolorder(crosstabResults, c("startDate", "endDate", "weights",
+                                 "stem", "banner",
+                                 "response.count", "total.responses"))
 
   return(crosstabResults)
 

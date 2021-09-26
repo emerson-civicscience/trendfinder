@@ -1,5 +1,5 @@
 questionTable <- function (precondition,
-                           toplineQuestion,
+                           questionRow,
                            answer.group.ids = NULL,
                            answer.group.names = NULL,
                            weights = NULL,
@@ -15,7 +15,7 @@ questionTable <- function (precondition,
   library(gridExtra)
   library(lubridate)
 
-  question.id <- c(toplineQuestion, 484, 7078)
+  question.id <- c(questionRow[1], 484, 7078)
 
   columnOrder <- c("stem", "banner", "response.count")
 
