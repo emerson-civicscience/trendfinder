@@ -1,7 +1,11 @@
 TFwider <- function(inputWider){
-  # Requires a data table with the unique row ID, crosstab ID, response count, and sample size
+  # inputWider <- outputResults
 
-  inputWiderSubset <- inputWider[,2:6] %>%
+  # weights, stem, and banne are ID columns
+  # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
+  number_of_ID_columns <- 3
+
+  inputWiderSubset <- inputWider[,2:7] %>%
     setorder(., "startDate", "endDate")
 
   inputWiderSubset <- unique(inputWiderSubset)
@@ -17,27 +21,27 @@ TFwider <- function(inputWider){
                                  names_from = c(startDate, endDate),
                                  values_from = response.count)
 
-  numberOfPeriods <- ncol(inputWiderSubset) - 2
+  numberOfPeriods <- ncol(inputWiderSubset) - number_of_ID_columns
 
   inputWiderSubset[is.na(inputWiderSubset)] <- 0
 
   inputColNames <- names(inputWiderSubset)
 
-  inputDataColNames <- inputColNames[3:length(inputWiderSubset)] %>%
+  inputDataColNames <- inputColNames[4:length(inputWiderSubset)] %>%
     gsub("_", " - ", .) %>%
     paste0(., ' - response count')
 
-  names(inputWiderSubset)[3:length(inputWiderSubset)] <- inputDataColNames
+  names(inputWiderSubset)[(number_of_ID_columns+1):length(inputWiderSubset)] <- inputDataColNames
 
   totalColNames <- gsub('response count', 'total responses', inputDataColNames)
 
-  baseColNames <- c('unique', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
+  baseColNames <- c('unique', 'weights', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
 
   baseColsEnd <- length(baseColNames)
   dataColsEnd <- baseColsEnd+length(inputDataColNames)
   totalColsEnd <- dataColsEnd+length(totalColNames)
 
-  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, sep=";")
+  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weights, sep=";")
   inputWiderSubset$stem <- as.character(inputWiderSubset$stem)
   inputWiderSubset$banner <- as.character(inputWiderSubset$banner)
 
@@ -70,16 +74,14 @@ TFwider <- function(inputWider){
     totalTable[(dataColsEnd+1):ncol(totalTable)] <- lapply(totalTable[(baseColsEnd+1):dataColsEnd], sum)
 
     if(totalLoop==1){
-      fullTotalTable <- totalTable
+      outputWider <- totalTable
     } else{
-      fullTotalTable <- rbind(fullTotalTable, totalTable)
+      outputWider <- rbind(outputWider, totalTable)
     }
 
   }
 
-  fullTotalTable$stemQ[which(is.na(fullTotalTable$stemQ))] <- 1
-
-  outputWider <- fullTotalTable
+  outputWider$stemQ[which(is.na(outputWider$stemQ))] <- 1
 
   return(outputWider)
 
