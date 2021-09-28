@@ -3,7 +3,7 @@ TFcrosstab <- function(crosstabRow,
                        data_end_dates,
                        batchTime,
                        crosstabResults = NULL,
-                       fulLCrosstabResults = NULL,
+                       fullCrosstabResults = NULL,
                        geography = USgeography,
                        useStemAndBannerPrecondition = NULL,
                        useStemPrecondition = NULL){
@@ -62,7 +62,7 @@ TFcrosstab <- function(crosstabRow,
                                    geography)
   }
 
-  scheme_name <- crosstabRow[3]
+  scheme_name <- as.character(crosstabRow[3])
   weights <- weightingDict[which(weightingDict$scheme_name == scheme_name),2][[1]][[1]]
 
   age_gender_precondition <- TFageGenderPrecondition(weights)

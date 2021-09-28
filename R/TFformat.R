@@ -65,15 +65,21 @@ TFformat <- function(inputFormat){
 
   inputFormatNumberOfCols2 <- ncol(inputFormat)
 
-  inputFormat <- left_join(inputFormat, dataKey[, c(1, 3:7)], by = c("stem" = "Answer ID"))
+  dataKeyColsWanted <- c('Answer ID', 'Weighting Scheme', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')
+
+  inputFormat <- left_join(inputFormat, dataKey[, dataKeyColsWanted], by = c("stem" = "Answer ID", "weights" = "Weighting Scheme"))
 
   inputFormatNumberOfCols3 <- ncol(inputFormat)
 
   colnames(inputFormat)[(inputFormatNumberOfCols2+1):inputFormatNumberOfCols3] <- c("Stem Name", "Stem Answer Flag", "Stem QText",
                                                                                     "Stem Client Q Flag", "Stem Q Account ID")
 
+  dataKeyUSadultsColsWanted <- c('Answer ID', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')
 
-  inputFormat <- left_join(inputFormat, dataKey[, c(1, 3:7)], by = c("banner" = "Answer ID"))
+  dataKeyUSadults <- dataKey[which(dataKey$`Weighting Scheme` == "USadultWeighting"), ] %>%
+    .[, dataKeyUSadultsColsWanted]
+
+  inputFormat <- left_join(inputFormat, dataKeyUSadults, by = c('banner' = 'Answer ID')) # Use the 'basic' version of the dataKey to populate banner Qs
 
   inputFormatNumberOfCols4 <- ncol(inputFormat)
 

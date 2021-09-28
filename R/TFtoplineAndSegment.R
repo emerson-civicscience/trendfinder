@@ -19,7 +19,7 @@ TFtoplineAndSegment <- function(questionRow,
         weights <- weightingDict[which(weightingDict$scheme_name == scheme_name),2][[1]][[1]]
 
         if(is.null(toplineIDs)){
-          bannerIDs <- cs_get_question_metadata(bannerQuestion)$data %>%
+          bannerIDs <- cs_get_question_metadata(questionID)$data %>%
             rownames(.) %>%
             as.numeric(.) %>%
             as.list(.)

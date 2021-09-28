@@ -15,7 +15,7 @@ def writeExcelAlly(pandas_df,
            
   pandas_df.loc[np.isnan(pandas_df['Tag Order']), ['Banner Tag Order']] = 4
 
-  pandas_df.sort_values(by=['Unique Row ID'], inplace = True)
+  pandas_df.sort_values(by=['Answer ID'], inplace = True)
   
   first_table_row = 0
   first_data_row = first_table_row + 3 # May need adjusted depending on where you insert table into Excel

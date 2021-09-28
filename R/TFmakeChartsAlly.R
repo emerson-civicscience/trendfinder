@@ -1,9 +1,14 @@
 TFmakeChartsAlly <- function(input_TF_make_charts){
 
-  # input_TF_make_charts <- readRDS('~/TrendFinder/Outputs/2021-09-03/Output - Stats - Batch Time 2021-09-03 14_23_07 EDT')
+  # input_TF_make_charts <- readRDS('~/TrendFinder/Outputs/2021-09-27/Output - Responses - Formatted - Batch Time 2021-09-27 16_05_14 EDT')
+
+  # input_TF_make_charts <- outputFormatted
+
+  # Spacing has been thrown off by dataKey$weight
 
   dataKeyTagTable <- dataKey[which(!is.na(dataKey$Tag)), ] %>%
     .[, c('Answer ID',
+          'Weighting Scheme',
           'Tag',
           'Tag Order',
           'Label')]
@@ -15,11 +20,12 @@ TFmakeChartsAlly <- function(input_TF_make_charts){
   colnames(dataKeyTagTable_stem) <- paste0('Stem ', colnames(dataKeyTagTable_stem))
   colnames(dataKeyTagTable_stem)[1] <- 'Stem ID (answers)'
 
-  dataKeyTagTable_banner <- dataKeyTagTable
+  dataKeyTagTable_banner <- dataKeyTagTable[which(dataKeyTagTable$`Weighting Scheme`=="USadultWeighting"), ]
+  dataKeyTagTable_banner <- dataKeyTagTable_banner[ , -grep('Weighting Scheme', colnames(dataKeyTagTable))]
   colnames(dataKeyTagTable_banner) <- paste0('Banner ', colnames(dataKeyTagTable_banner))
   colnames(dataKeyTagTable_banner)[1] <- 'Banner ID (answers)'
 
-  dt <- left_join(input_TF_make_charts, dataKeyTagTable_stem, by = 'Stem ID (answers)')
+  dt <- left_join(input_TF_make_charts, dataKeyTagTable_stem, by = c('Stem ID (answers)', "Weights" = "Stem Weighting Scheme"))
   dt <- left_join(dt, dataKeyTagTable_banner, by = 'Banner ID (answers)')
 
   # segment_rows <- which(is.na(dt$`Stem QText`))
@@ -79,6 +85,8 @@ TFmakeChartsAlly <- function(input_TF_make_charts){
   orphan_topline_locations <- lapply(potential_orphan_toplines, grep, x=unique(c(crosstab_stems, crosstab_banners))) %>%
     unlist()
 
+  orphan_topline_locations <- orphan_topline_locations[which(!is.na(orphan_topline_locations))]
+
   if(!is.null(orphan_topline_locations)){
     orphan_toplines <- potential_orphan_toplines[-orphan_topline_locations]
   } else {
@@ -86,14 +94,15 @@ TFmakeChartsAlly <- function(input_TF_make_charts){
   }
 
 
-  meta_data_columns_wanted <- c("Unique Row ID", "Unique Crosstab ID",
+  colnames(dt) <- as.character(colnames(dt))
+  meta_data_columns_wanted <- c("Unique Row ID", "Unique Crosstab ID", "Weights",
                                 "Stem QID", "Stem QText", "Stem ID (answers)", "Stem Name", "Stem Tag Order", "Stem Label",
                                 "Banner QID", "Banner QText", "Banner ID (answers)", "Banner Name", "Banner Tag Order", "Banner Label",
                                 "Stem Q Banner Tag", "Stem Tag Banner Q", "Tag Tag")
 
-  colnames(dt)[19] <- "2021 to date"
+  colnames(dt)[20] <- "2021 to date"
 
-  data_columns_wanted <- 19
+  data_columns_wanted <- 20
   data_colnames_wanted <- colnames(dt)[data_columns_wanted]
 
   dt_write_excel <- dt[, c(meta_data_columns_wanted, colnames(dt)[data_columns_wanted])]
@@ -111,7 +120,7 @@ TFmakeChartsAlly <- function(input_TF_make_charts){
   }
 
   file_name <- paste0("Excel from Python - ", Sys.time(), ".xlsx") %>%
-      gsub(":", "_", .)
+    gsub(":", "_", .)
 
   chart_references <- c(topline_references, orphan_toplines,
                         crosstab_references,
@@ -125,35 +134,42 @@ TFmakeChartsAlly <- function(input_TF_make_charts){
   dt_write_excel$`Banner Tag Order` <- as.numeric(dt_write_excel$`Banner Tag Order`)
   dt_write_excel$`Stem Tag Order` <- as.numeric(dt_write_excel$`Stem Tag Order`)
 
-  chart_references <- chart_references[grep("Ally", chart_references)]
+  # dt_write_excel_save <- dt_write_excel
+  # dt_write_excel <- dt_write_excel_save
+
+  dt_write_excel$`Stem Label`[which(dt_write_excel$`Stem Name` == 'Topline')] <- 'U.S. Adults'
+  dt_write_excel <- dt_write_excel[which(!is.na(dt_write_excel$`Stem Label`)), ]
 
   dt_write_excel <- pivot_wider(dt_write_excel,
-                                id_cols = 'Banner ID (answers)',
-                                names_from = 'Stem Name',
+                                id_cols = c('Banner ID (answers)', 'Weights'),
+                                names_from = 'Stem Label',
                                 values_from = '2021 to date')
-
-  dt_write_excel <- dt_write_excel[, c(1, 2, 4, 6, 9)]
 
   colnames(dt_write_excel)[1] <- 'Answer ID'
 
-  dt_write_excel <- left_join(dt_write_excel, dataKey)
+  dt_write_excel <- left_join(dt_write_excel, dataKey, by = c("Answer ID", "Weights" = "Weighting Scheme"))
 
-  dt_write_excel <- dt_write_excel[, c(6:14, 2:5, 1)]
+  colOrder <- c('Answer ID', 'Question ID', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account', 'Tag', 'Tag Order', 'Label', 'Affluent Millennials', 'Mass Middles', 'Young Mass Middles', 'U.S. Adults')
 
+  dt_write_excel <- dt_write_excel[, colOrder]
+
+  dt_write_excel$Tag <- as.numeric(dt_write_excel$Tag)
+  dt_write_excel$`Tag Order` <- as.numeric(dt_write_excel$`Tag Order`)
+  dt_write_excel$Label <- as.character(dt_write_excel$Label)
 
   pandas_df <- r_to_py(dt_write_excel)
   data_colnames_wanted_py <- r_to_py(data_colnames_wanted)
   chart_references_py <- r_to_py(chart_references)
   file_name_py <- r_to_py(file_name)
 
-  # write.table(dt_write_excel, file="Ally Input.tsv", quote=TRUE, sep='\t', row.names=FALSE)
+  # write.table(dt_write_excel, file=paste0("Ally Input - ", today(), ".tsv"), quote=TRUE, sep='\t', row.names=FALSE)
 
   source_python("~/TrendFinder/trendfinder/R/writeExcelAlly.py")
 
   writeExcelAlly(pandas_df,
-             data_colnames_wanted_py,
-             chart_references_py,
-             file_name_py)
+                 data_colnames_wanted_py,
+                 chart_references_py,
+                 file_name_py)
 
   fileCopyStatus <- file.copy(from = file.path(getwd(), file_name),
                               to   = file.path(outputFilePathMaker(), file_name))
