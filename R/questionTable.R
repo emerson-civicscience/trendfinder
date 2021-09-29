@@ -26,7 +26,8 @@ questionTable <- function (precondition,
       substr(1, 10)
   } else{
     startDate <- sub('.*:day>', '', precondition) %>%
-      substr(1, 10)
+      substr(1, 10) %>%
+      as.Date(.) + 1
   }
 
   if(grepl(":day<=", precondition)){
@@ -51,31 +52,31 @@ questionTable <- function (precondition,
     }
 
       if(!is.null(data)){
-      if (is.null(answer.group.ids)){
+        if (is.null(answer.group.ids)){
 
-        names(data)[names(data) == "text.1"] <- "stem"
-        names(data)[names(data) == "Row.names"] <- "banner"
+          names(data)[names(data) == "text.1"] <- "stem"
+          names(data)[names(data) == "Row.names"] <- "banner"
 
-        data$stem <- segmentText
+          data$stem <- segmentText
 
-        data <- data[, columnOrder]
+          data <- data[, columnOrder]
 
 
-      } else {
-        data <- cs_cqb_ag(data,
-                          answer.group.ids = answer.group.ids,
-                          answer.group.names = answer.group.names)
-        data$stem <- segmentText
-        names(data)[names(data) == "text.1"] <- "banner"
-        data <- data[, columnOrder]
-      }
+        } else {
+          data <- cs_cqb_ag(data,
+                            answer.group.ids = answer.group.ids,
+                            answer.group.names = answer.group.names)
+          data$stem <- segmentText
+          names(data)[names(data) == "text.1"] <- "banner"
+          data <- data[, columnOrder]
+        }
 
-      total.responses <- sum(data$response.count, na.rm = T)
+        total.responses <- sum(data$response.count, na.rm = T)
 
-      return(list(startDate = startDate,
-                  endDate = endDate,
-                  data = data,
-                  total.responses = total.responses))
+        return(list(startDate = startDate,
+                    endDate = endDate,
+                    data = data,
+                    total.responses = total.responses))
       }
     }, error = function(e) {
 

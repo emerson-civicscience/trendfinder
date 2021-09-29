@@ -80,15 +80,19 @@ TFwider <- function(inputWider){
   #
   #   toTotalTable <- inputWiderSubset[, c('uniqueCrosstab', inputDataColNames)]
 
-  totalTable <- aggregate(. ~ uniqueCrosstab, inputWiderSubset[, c('uniqueCrosstab', inputDataColNames)], sum)
+  inputWiderSubset$weightAndStemAndBannerQ <- paste0(inputWiderSubset$weights, ';', inputWiderSubset$stem, ';', inputWiderSubset$bannerQ)
 
-  outputWider <- left_join(inputWiderSubset, totalTable, by = 'uniqueCrosstab')
+  totalTable <- aggregate(. ~ weightAndStemAndBannerQ, inputWiderSubset[, c('weightAndStemAndBannerQ', inputDataColNames)], sum)
+
+  colnames(totalTable)[2] <- gsub('response count', 'total responses', colnames(totalTable)[2])
+
+  outputWider <- left_join(inputWiderSubset, totalTable, by = 'weightAndStemAndBannerQ')
+
+  outputWider <- outputWider[ , -which(colnames(outputWider)=='weightAndStemAndBannerQ')]
 
   names(outputWider) <- c(baseColNames, inputDataColNames, totalColNames)
 
   # outputWider$stemQ[which(is.na(outputWider$stemQ))] <- 1
-
-
 
   return(outputWider)
 

@@ -34,6 +34,10 @@ TFcrosstabAlly <- function(crosstabRow,
 
   bannerNames <- as.character(bannerIDs)# Use answer choice IDs as group names
 
+  scheme_name <- crosstabRow[3]
+
+  weights <- weightingDict[which(weightingDict$scheme_name == scheme_name),2][[1]][[1]]
+
   # Its default to use the banner precondition because it's generally more useful, but in some cases it might be better
   # to date the crosstab by the stem or both. This code and the crosstabTable function do not currently support different
   # dates for the stem and banner. They could, but the use cases seem limited at this time.
@@ -49,7 +53,6 @@ TFcrosstabAlly <- function(crosstabRow,
                                    ":day<",data_end_dates, "^",
                                    geography)
 
-    weights = USadultWeighting
     # if (bannerQuestion == 42887){
     #   weights = US25orOlderWeighting
     # }
@@ -68,62 +71,62 @@ TFcrosstabAlly <- function(crosstabRow,
                                    ":day<",data_end_dates, "^",
                                    geography)
 
-    weights = US25to44weighting
   }
 
 
   if (stemQuestion == 135934){
-    crosstabPrecondition <- paste0("7078:day>=",data_start_dates, "^",
-                                   "7078:day<",data_end_dates,"^",
-                                   "7078=30025;29520;29521^",
-                                   as.character(bannerQuestion),
-                                   ":day>=",data_start_dates,"^",
-                                   as.character(bannerQuestion),
-                                   ":day<",data_end_dates, "^",
-                                   geography)
-
-    multiple_weightings <- 2
-
-    multiple_weightings_ref <- list(US25to44weighting, US25to34weighting)
-
-  }
-
-  if(is.null(multiple_weightings)){
-
-    crosstabResults <- lapply(crosstabPrecondition, crosstabTable,
-                              question.ids = c(stemQuestion, bannerQuestion, 484, 7078),
-                              row.answer.group.ids = stemIDs,
-                              row.answer.group.names = stemNames,
-                              col.answer.group.ids = bannerIDs,
-                              col.answer.group.names = bannerNames,
-                              weights = weights)
-
-  } else{
-    for(i in 1:multiple_weightings){
-
-      weights = multiple_weightings_ref[[i]]
-
-      crosstabResults <- lapply(crosstabPrecondition, crosstabTable,
-                                question.ids = c(stemQuestion, bannerQuestion, 484, 7078),
-                                row.answer.group.ids = stemIDs,
-                                row.answer.group.names = stemNames,
-                                col.answer.group.ids = bannerIDs,
-                                col.answer.group.names = bannerNames,
-                                weights = weights)
+    if(scheme_name == 'US25to34weighting'){
+        crosstabPrecondition <- paste0("7078:day>=",data_start_dates, "^",
+                                       "7078:day<",data_end_dates,"^",
+                                       "7078=30024;30025^",
+                                       as.character(bannerQuestion),
+                                       ":day>=",data_start_dates,"^",
+                                       as.character(bannerQuestion),
+                                       ":day<",data_end_dates, "^",
+                                       geography)
     }
 
-    # Need to add weighting scheme info to results!
+    if(scheme_name == 'US30to54weighting'){
+      crosstabPrecondition <- paste0("7078:day>=",data_start_dates, "^",
+                                     "7078:day<",data_end_dates,"^",
+                                     "7078=30025;29520;29521^",
+                                     as.character(bannerQuestion),
+                                     ":day>=",data_start_dates,"^",
+                                     as.character(bannerQuestion),
+                                     ":day<",data_end_dates, "^",
+                                     geography)
+    }
+
+
+
+
 
   }
+
+
+
+
+  crosstabResults <- lapply(crosstabPrecondition, crosstabTable,
+                            question.ids = c(stemQuestion, bannerQuestion, 484, 7078),
+                            row.answer.group.ids = stemIDs,
+                            row.answer.group.names = stemNames,
+                            col.answer.group.ids = bannerIDs,
+                            col.answer.group.names = bannerNames,
+                            weights = weights)
 
 
 
   crosstabResults <- lapply(crosstabResults, as.data.table) %>%
-    do.call(rbind, .) %>%
-    setcolorder(., c("startDate", "endDate",
-                     "data.stem", "data.banner",
-                     "data.response.count", "total.responses"))
+    do.call(rbind, .)
   names(crosstabResults) <- gsub("data.", "", names(crosstabResults))
+
+  crosstabResults$weights <- scheme_name
+
+  setcolorder(crosstabResults, c("startDate", "endDate", "weights",
+                     "stem", "banner",
+                     "response.count", "total.responses"))
+
+
 
 
   return(crosstabResults)
