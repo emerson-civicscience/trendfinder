@@ -117,6 +117,13 @@ TFmakeCharts <- function(input_TF_make_charts){
     unique() %>%
     .[grep(";", .)]
 
+  chart_reference_check <- c(dt_write_excel$`Unique Crosstab ID`, dt_write_excel$`Stem Q Banner Tag`,
+  													 dt_write_excel$`Stem Tag Banner Q`, dt_write_excel$`Tag Tag`) %>%
+  	unique()
+
+  chart_references <- chart_references[chart_references %in% chart_reference_check]
+
+
   # write.table(dt_write_excel, file=paste0('tf 2021-09-07.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   # Convert tag order column back to numeric if it has been converted to factor

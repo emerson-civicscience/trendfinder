@@ -8,6 +8,8 @@ TFcrosstab <- function(crosstabRow,
                        useStemAndBannerPrecondition = NULL,
                        useStemPrecondition = NULL){
 
+  crosstabRow <- unlist(crosstabRow)
+
   stemQuestion <- as.numeric(crosstabRow[1])
   stemIDs <- groupIDlist[[stemQuestion]] # Grab answer choice IDs from groupIDlist
 

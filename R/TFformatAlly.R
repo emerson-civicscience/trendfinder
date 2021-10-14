@@ -1,3 +1,5 @@
+### I believe this is deprecated. Yes, I know I wrote it.
+
 TFformatAlly <- function(inputFormat){
 
 inputFormat <- unique(inputFormat)
@@ -6,13 +8,13 @@ RCsuffix <- 'response count'
 TRsuffix <- 'total responses'
 sigSuffix <- ' significance'
 
-if(is.null(timePeriod)){
-  timePeriod <- names(inputFormat)[grep(RCsuffix, names(inputFormat))] %>%
+if(is.null(time_period)){
+  time_period <- names(inputFormat)[grep(RCsuffix, names(inputFormat))] %>%
     gsub(' - response count', '', .)
 }
 
 
-numberOfPeriods <- length(timePeriod)
+numberOfPeriods <- length(time_period)
 
 responseColNumbers <- grep(RCsuffix, names(inputFormat))
 totalColNumbers <- grep(TRsuffix, names(inputFormat))
@@ -24,7 +26,7 @@ totalCols <- names(inputFormat)[totalColNumbers]
 
 percentTable <- subset(inputFormat, select = c("unique", names(inputFormat)[responseColNumbers]))
 percentTable[, 2:dim(percentTable)[2]] <- 0
-names(percentTable) <- c("unique", timePeriod)
+names(percentTable) <- c("unique", time_period)
 
 percentDiffTable <- percentTable[, 1:(ncol(percentTable)-1)]
 
@@ -58,7 +60,6 @@ if(numberOfPeriods == 1){
 
 }
 
-outputStemID <- subset(inputFormat, select = stem)
 outputStemID <- inputFormat$stem %>%
   as.data.frame()
 
@@ -107,7 +108,7 @@ baseTable$`Banner Name` <- outputBannerTable$`Answer Text`
 inputFormat <- inputFormat[,c(1,7:ncol(inputFormat))] %>%
   merge(baseTable, ., by.x="Unique Row ID", by.y=c("unique"))
 
-columnOrder <- c(baseCols, timePeriod, percentDiffCols, responseCols, totalCols)
+columnOrder <- c(baseCols, time_period, percentDiffCols, responseCols, totalCols)
 
 outputFormatted <- inputFormat[, columnOrder]
 outputFormatted$`Stem QText` <- as.character(outputFormatted$`Stem QText`) %>%
