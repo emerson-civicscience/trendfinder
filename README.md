@@ -1,5 +1,2 @@
-# github-upload
+# trendfinder
 This file is lacking.
-# trendfinder
-# wtf
-# trendfinder
