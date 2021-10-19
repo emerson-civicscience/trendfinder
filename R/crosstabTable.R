@@ -11,28 +11,28 @@ crosstabTable <- function (precondition = NULL,
   ### Mostly stolen from cs_create_crosstab_barchart
 
 {
+
+  ### Try commenting these out
   library(dplyr)
   library(ggplot2)
   library(gridExtra)
   library(lubridate)
 
   if(grepl(":day>=", precondition)){
-    startDate <- sub('.*:day>=', '', precondition) %>%
+    start_date <- sub('.*:day>=', '', precondition) %>%
       substr(1, 10)
   } else{
-    startDate <- sub('.*:day>', '', precondition) %>%
+    start_date <- sub('.*:day>=', '', precondition) %>%
       substr(1, 10)
   }
 
   if(grepl(":day<=", precondition)){
-    endDate <-   sub('.*:day<=', '', precondition) %>%
+    end_date <-   sub('.*:day<=', '', precondition) %>%
       substr(1, 10)
   } else{
-    endDate <-   sub('.*:day<', '', precondition) %>%
+    end_date <-   sub('.*:day<=', '', precondition) %>%
       substr(1, 10)
   }
-
-  endDate <- as.Date(endDate) - 1
 
   tryCatch( {
 
@@ -75,8 +75,8 @@ crosstabTable <- function (precondition = NULL,
 
     total_responses <- sum(data$response.count, na.rm = T)
 
-    return(list(startDate = startDate,
-                endDate= endDate,
+    return(list(start_date = start_date,
+                end_date= end_date,
                 data = data,
                 total.responses = total_responses))
 
@@ -95,8 +95,8 @@ crosstabTable <- function (precondition = NULL,
     names(data)[names(data) == "text.1"] <- "stem"
     names(data)[names(data) == "text.2"] <- "banner"
 
-    return(list(startDate = startDate,
-                endDate= endDate,
+    return(list(start_date = start_date,
+                end_date= end_date,
                 data = data,
                 total.responses = NA))
   } )

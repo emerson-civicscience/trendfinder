@@ -1,5 +1,5 @@
 questionTable <- function (precondition,
-                           questionRow,
+                           questionID,
                            answer.group.ids = NULL,
                            answer.group.names = NULL,
                            weights = NULL,
@@ -10,31 +10,32 @@ questionTable <- function (precondition,
   ### Mostly stolen from cs_create_question_barchart
 
 {
+  ### Try commenting all these libraries out
   library(ggplot2)
   library(grid)
   library(gridExtra)
   library(lubridate)
 
-  question.id <- c(questionRow[1], 484, 7078)
+  question.id <- c(questionID, 484, 7078)
 
   columnOrder <- c("stem", "banner", "response.count")
 
 
 
   if(grepl(":day>=", precondition)){
-    startDate <- sub('.*:day>=', '', precondition) %>%
+    start_date <- sub('.*:day>=', '', precondition) %>%
       substr(1, 10)
   } else{
-    startDate <- sub('.*:day>', '', precondition) %>%
+    start_date <- sub('.*:day>', '', precondition) %>%
       substr(1, 10) %>%
       as.Date(.) + 1
   }
 
   if(grepl(":day<=", precondition)){
-    endDate <-   sub('.*:day<=', '', precondition) %>%
+    end_date <-   sub('.*:day<=', '', precondition) %>%
       substr(1, 10)
   } else{
-    endDate <-   sub('.*:day<', '', precondition) %>%
+    end_date <-   sub('.*:day<', '', precondition) %>%
       substr(1, 10) %>%
       as.Date(.) - 1
   }
@@ -51,34 +52,34 @@ questionTable <- function (precondition,
       return(total_responses = as.numeric(aggregate(result$response.count, by = list(result$V3), FUN = sum)[2])) # This is just something for the question compendium
     }
 
-      if(!is.null(data)){
-        if (is.null(answer.group.ids)){
+    if(!is.null(data)){
+      if (is.null(answer.group.ids)){
 
-          names(data)[names(data) == "text.1"] <- "stem"
-          names(data)[names(data) == "Row.names"] <- "banner"
+        names(data)[names(data) == "text.1"] <- "stem"
+        names(data)[names(data) == "Row.names"] <- "banner"
 
-          data$stem <- segmentText
+        data$stem <- segmentText
 
-          data <- data[, columnOrder]
+        data <- data[, columnOrder]
 
 
-        } else {
-          data <- cs_cqb_ag(data,
-                            answer.group.ids = answer.group.ids,
-                            answer.group.names = answer.group.names)
-          data$stem <- segmentText
-          names(data)[names(data) == "text.1"] <- "banner"
-          data <- data[, columnOrder]
-        }
-
-        total.responses <- sum(data$response.count, na.rm = T)
-
-        return(list(startDate = startDate,
-                    endDate = endDate,
-                    data = data,
-                    total.responses = total.responses))
+      } else {
+        data <- cs_cqb_ag(data,
+                          answer.group.ids = answer.group.ids,
+                          answer.group.names = answer.group.names)
+        data$stem <- segmentText
+        names(data)[names(data) == "text.1"] <- "banner"
+        data <- data[, columnOrder]
       }
-    }, error = function(e) {
+
+      total.responses <- sum(data$response.count, na.rm = T)
+
+      return(list(start_date = start_date,
+                  end_date = end_date,
+                  data = data,
+                  total.responses = total.responses))
+    }
+  }, error = function(e) {
 
     if (is.null(answer.group.ids)) {
       data <- cs_get_question_metadata(question.id[1])$data
@@ -98,8 +99,8 @@ questionTable <- function (precondition,
 
     }
 
-    return(list(startDate = startDate,
-                endDate = endDate,
+    return(list(start_date = start_date,
+                end_date = end_date,
                 data = data,
                 total.responses = NA))
 

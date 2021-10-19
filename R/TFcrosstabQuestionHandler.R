@@ -7,9 +7,9 @@ TFcrosstabQuestionHandler <- function(crosstab_input = NULL,
 
       stem_banner_cross <- expand.grid(stem_questions, banner_questions)
       colnames(stem_banner_cross) <- c('seg', 'com')
-    }
 
-	crosstab_input <- rbind(stem_banner_cross, crosstab_input)
+      crosstab_input <- rbind(stem_banner_cross, crosstab_input)
+    }
 
 	crosstab_input$weights <- "USadultWeighting"
 

@@ -8,20 +8,20 @@ TFwider <- function(inputWider){
   number_of_ID_columns <- 3
 
   inputWiderSubset <- inputWider[,2:7] %>%
-    setorder(., "startDate", "endDate")
+    setorder(., "start_date", "end_date")
 
   inputWiderSubset <- unique(inputWiderSubset)
   inputWiderSubset <- inputWiderSubset[!duplicated(inputWiderSubset[,1:5]),]
   # If you've managed to compute the same values more than once, this keeps just the first occurence
 
-  outputStatsName <- outputName("Output - Stats", batchTime = batchTime)
+  outputStatsName <- outputName("Output - Stats", batch_time = batch_time)
 
   inputWiderSubset[is.na(inputWiderSubset)] <- 0
   inputWiderSubset <- unique(inputWiderSubset)
 
   inputWiderSubset <- pivot_wider(inputWiderSubset,
-                                  names_from = c(startDate, endDate),
-                                  values_from = response.count)
+                                  names_from = c(start_date, end_date),
+                                  values_from = response_count)
 
   numberOfPeriods <- ncol(inputWiderSubset) - number_of_ID_columns
 
@@ -37,7 +37,7 @@ TFwider <- function(inputWider){
 
   totalColNames <- gsub('response count', 'total responses', inputDataColNames)
 
-  baseColNames <- c('unique', 'weights', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
+  baseColNames <- c('unique', 'weighting_scheme', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
 
   baseColsEnd <- length(baseColNames)
   dataColsEnd <- baseColsEnd+length(inputDataColNames)
@@ -46,12 +46,12 @@ TFwider <- function(inputWider){
 
   inputWiderSubset$stem <- as.character(inputWiderSubset$stem)
   inputWiderSubset$banner <- as.character(inputWiderSubset$banner)
-  inputWiderSubset$weights <- as.character(inputWiderSubset$weights)
-  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weights, sep=";")
+  inputWiderSubset$weights <- as.character(inputWiderSubset$weighting_scheme)
+  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
 
   dataKeySubset <- dataKey[, c('Answer ID', 'Weighting Scheme', 'Question ID')]
 
-  inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('stem' = 'Answer ID', 'weights' = 'Weighting Scheme'))
+  inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('stem' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'stemQ'
 
   dataKeyUSadults <- dataKey[which(dataKey$`Weighting Scheme` == "USadultWeighting"), ] %>%
@@ -62,7 +62,9 @@ TFwider <- function(inputWider){
   # Could adjust the crosstab handler so that only stem questions are modified by groupIDlist (which needs to be done away with anyway)
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'bannerQ'
 
-  inputWiderSubset$uniqueCrosstab <- paste(inputWiderSubset$stemQ, inputWiderSubset$bannerQ, inputWiderSubset$weights, sep=";")
+  inputWiderSubset$stemQ[which(is.na(inputWiderSubset$stemQ))] <- inputWiderSubset$stem[which(is.na(inputWiderSubset$stemQ))]
+
+  inputWiderSubset$uniqueCrosstab <- paste(inputWiderSubset$stemQ, inputWiderSubset$bannerQ, inputWiderSubset$weighting_scheme, sep=";")
 
   inputWiderSubset <- inputWiderSubset[, c(baseColNames, inputDataColNames)]
   # totalsTable <- matrix(0L, nrow=nrow(inputWiderSubset), ncol=numberOfPeriods)
@@ -80,7 +82,7 @@ TFwider <- function(inputWider){
   #
   #   toTotalTable <- inputWiderSubset[, c('uniqueCrosstab', inputDataColNames)]
 
-  inputWiderSubset$weightAndStemAndBannerQ <- paste0(inputWiderSubset$weights, ';', inputWiderSubset$stem, ';', inputWiderSubset$bannerQ)
+  inputWiderSubset$weightAndStemAndBannerQ <- paste0(inputWiderSubset$weighting_scheme, ';', inputWiderSubset$stem, ';', inputWiderSubset$bannerQ)
 
   totalTable <- aggregate(. ~ weightAndStemAndBannerQ, inputWiderSubset[, c('weightAndStemAndBannerQ', inputDataColNames)], sum)
 

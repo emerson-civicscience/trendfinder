@@ -67,7 +67,15 @@ TFformat <- function(inputFormat){
 
   dataKeyColsWanted <- c('Answer ID', 'Weighting Scheme', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')
 
-  inputFormat <- left_join(inputFormat, dataKey[, dataKeyColsWanted], by = c("stem" = "Answer ID", "weights" = "Weighting Scheme"))
+  inputFormat <- left_join(inputFormat, dataKey[, dataKeyColsWanted], by = c("stem" = "Answer ID", "weighting_scheme" = "Weighting Scheme"))
+
+  NA_rows <- which(is.na(inputFormat$`Answer Text`))
+
+  ### Note: This should really be done via dataKey but I'm just fixing it for now
+  ### This could be left in in the event that a new segment is made but not added to dataKey right away
+  inputFormat[NA_rows, "Answer Text"] <- inputFormat$stem[NA_rows]
+  inputFormat[NA_rows, "Answer Flag"] <- 1
+  inputFormat[NA_rows, "Question Text"] <- "Custom Segment"
 
   inputFormatNumberOfCols3 <- ncol(inputFormat)
 
@@ -120,7 +128,7 @@ TFformat <- function(inputFormat){
   outputFormatted$`Banner Name` <- as.character(outputFormatted$`Banner Name`, map_quote = TRUE) %>%
     utf8_normalize(., map_quote = TRUE)
 
-  outputFormattedName <- outputName("Output - Responses - Formatted", batchTime = batchTime)
+  outputFormattedName <- outputName("Output - Responses - Formatted", batch_time = batch_time)
   saveRDS(outputFormatted, file = outputFormattedName)
 
   write.table(outputFormatted, file=paste0(outputFormattedName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
