@@ -1,23 +1,15 @@
 TFtoplineQuestionHandler <- function(stem_questions,
 																		 banner_questions,
-																		 weighting_schemes = NULL){
+																		 weighting_schemes = "USadultWeighting"){
 
 	question_list <- c(stem_questions, banner_questions) %>%
     unique() %>%
+		rep(., length(weighting_schemes)) %>%
     sort()
 
-	questionRows <- data.frame(banner = question_list, weight = "USadultWeighting")
+	rep(question_list, length(weighting_schemes))
 
-	if(length(weighting_schemes) > 0){
-
-		questionRowsCopy <- questionRows
-		for(scheme_loop in weighting_schemes){
-			questionRowsCopy$weight <- scheme_loop
-
-			questionRows <- rbind(questionRows, questionRowsCopy)
-		}
-
-	}
+	questionRows <- data.frame(banner = question_list, weighting_scheme = weighting_schemes)
 
   return(questionRows)
 
