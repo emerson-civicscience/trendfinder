@@ -1,8 +1,6 @@
 TFwider <- function(inputWider){
   # inputWider <- outputResults
 
-  ### NEED TO ADD ALL NA Qs to dataKey
-
   # weights, stem, and banne are ID columns
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
   number_of_ID_columns <- 3
@@ -35,19 +33,19 @@ TFwider <- function(inputWider){
 
   names(inputWiderSubset)[(number_of_ID_columns+1):length(inputWiderSubset)] <- inputDataColNames
 
-  totalColNames <- gsub('response count', 'total responses', inputDataColNames)
+  # totalColNames <- gsub('response count', 'total responses', inputDataColNames)
 
   baseColNames <- c('unique', 'weighting_scheme', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
 
   baseColsEnd <- length(baseColNames)
   dataColsEnd <- baseColsEnd+length(inputDataColNames)
-  totalColsEnd <- dataColsEnd+length(totalColNames)
+  # totalColsEnd <- dataColsEnd+length(totalColNames)
 
 
   inputWiderSubset$stem <- as.character(inputWiderSubset$stem)
   inputWiderSubset$banner <- as.character(inputWiderSubset$banner)
   inputWiderSubset$weights <- as.character(inputWiderSubset$weighting_scheme)
-  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
+  # inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
 
   dataKeySubset <- dataKey[, c('Answer ID', 'Weighting Scheme', 'Question ID')]
 
@@ -64,9 +62,10 @@ TFwider <- function(inputWider){
 
   inputWiderSubset$stemQ[which(is.na(inputWiderSubset$stemQ))] <- inputWiderSubset$stem[which(is.na(inputWiderSubset$stemQ))]
 
+  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
   inputWiderSubset$uniqueCrosstab <- paste(inputWiderSubset$stemQ, inputWiderSubset$bannerQ, inputWiderSubset$weighting_scheme, sep=";")
 
-  inputWiderSubset <- inputWiderSubset[, c(baseColNames, inputDataColNames)]
+  outputWider <- inputWiderSubset[, c(baseColNames, inputDataColNames)]
   # totalsTable <- matrix(0L, nrow=nrow(inputWiderSubset), ncol=numberOfPeriods)
   #
   # inputWiderSubset <- cbind(inputWiderSubset, totalsTable) %>%
@@ -82,17 +81,18 @@ TFwider <- function(inputWider){
   #
   #   toTotalTable <- inputWiderSubset[, c('uniqueCrosstab', inputDataColNames)]
 
-  inputWiderSubset$weightAndStemAndBannerQ <- paste0(inputWiderSubset$weighting_scheme, ';', inputWiderSubset$stem, ';', inputWiderSubset$bannerQ)
+  # inputWiderSubset$weightAndStemAndBannerQ <- paste0(inputWiderSubset$weighting_scheme, ';', inputWiderSubset$stem, ';', inputWiderSubset$bannerQ)
 
-  totalTable <- aggregate(. ~ weightAndStemAndBannerQ, inputWiderSubset[, c('weightAndStemAndBannerQ', inputDataColNames)], sum)
+  # totalTable <- aggregate(. ~ weightAndStemAndBannerQ, inputWiderSubset[, c('weightAndStemAndBannerQ', inputDataColNames)], sum)
 
-  colnames(totalTable)[2] <- gsub('response count', 'total responses', colnames(totalTable)[2])
+  # colnames(totalTable)[2] <- gsub('response count', 'total responses', colnames(totalTable)[2])
 
-  outputWider <- left_join(inputWiderSubset, totalTable, by = 'weightAndStemAndBannerQ')
+  # outputWider <- left_join(inputWiderSubset, totalTable, by = 'weightAndStemAndBannerQ')
 
-  outputWider <- outputWider[ , -which(colnames(outputWider)=='weightAndStemAndBannerQ')]
+  # outputWider <- outputWider[ , -which(colnames(outputWider)=='weightAndStemAndBannerQ')]
 
-  names(outputWider) <- c(baseColNames, inputDataColNames, totalColNames)
+  # names(outputWider) <- c(baseColNames, inputDataColNames, totalColNames)
+  names(outputWider) <- c(baseColNames, inputDataColNames)
 
   # outputWider$stemQ[which(is.na(outputWider$stemQ))] <- 1
 

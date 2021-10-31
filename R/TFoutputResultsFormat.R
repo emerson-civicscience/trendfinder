@@ -4,7 +4,9 @@ TFoutputResultsFormat <- function(outputResults,
 	names(outputResults) <- gsub("data.", "", names(outputResults))
 	names(outputResults) <- gsub("\\.", "_", names(outputResults))
 
-	setcolorder(outputResults, c("start_date", "end_date", "weighting_scheme",
+	outputResults$batch <- batch_time
+
+	setcolorder(outputResults, c("batch", "start_date", "end_date", "weighting_scheme",
 																 "stem", "banner",
 																 "response_count", "total_responses"))
 
@@ -12,12 +14,6 @@ TFoutputResultsFormat <- function(outputResults,
 		gsub('\\)', '', .)
 	outputResults$banner <- gsub('c\\(', '', outputResults$banner) %>%
 		gsub('\\)', '', .)
-
-	outputResults$batch <- batch_time
-
-	outputColumnOrder <- c(ncol(outputResults), 1:(ncol(outputResults)-1))
-
-	outputResults <- outputResults[, ..outputColumnOrder]
 
 	return(outputResults)
 

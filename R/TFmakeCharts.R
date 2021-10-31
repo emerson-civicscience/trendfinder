@@ -1,6 +1,6 @@
 TFmakeCharts <- function(input_TF_make_charts){
 
-  # input_TF_make_charts <- readRDS('~/TrendFinder/Outputs/2021-09-03/Output - Stats - Batch Time 2021-09-03 14_23_07 EDT')
+  # input_TF_make_charts <- outputFormatted
 
   dataKeyTagTable <- dataKey[which(!is.na(dataKey$Tag)), ] %>%
     .[, c('Answer ID',
@@ -41,8 +41,22 @@ TFmakeCharts <- function(input_TF_make_charts){
   crosstab_stems <- unique(dt_subset$`Stem QID`) %>%
     .[-grep(0, .)]
   crosstab_banners <- unique(dt_subset$`Banner QID`)
+
   crosstab_toplines <- c(crosstab_stems, crosstab_banners) %>%
-    paste0('0;', .)
+    paste('0', ., weighting_schemes[1], sep=";")
+
+  if(length(weighting_schemes) > 1){
+    for(i in 2:length(weighting_schemes)){
+
+      crosstab_toplines_next <- c(crosstab_stems, crosstab_banners) %>%
+        paste('0', ., weighting_schemes[i], sep=";")
+
+      crosstab_toplines <- c(crosstab_toplines, crosstab_toplines_next)
+
+
+    }
+
+  }
 
   crosstab_references <- c(unique(dt_subset$`Unique Crosstab ID`), crosstab_toplines) %>%
     unique
@@ -91,8 +105,15 @@ TFmakeCharts <- function(input_TF_make_charts){
                                 "Banner QID", "Banner QText", "Banner ID (answers)", "Banner Name", "Banner Tag Order", "Banner Label",
                                 "Stem Q Banner Tag", "Stem Tag Banner Q", "Tag Tag")
 
-  data_columns_wanted <- (grep("Banner Name", colnames(dt))+1):(grep("Period 1 - ", colnames(dt))-1)
-  data_colnames_wanted <- colnames(dt)[data_columns_wanted]
+  if("Period 1" %in% colnames(dt)){
+    data_columns_wanted <- (grep("Banner Name", colnames(dt))+1):(grep("Period 1 - ", colnames(dt))-1)
+  } else{
+    data_columns_wanted <- (grep("Banner Name", colnames(dt))+1)
+  }
+
+
+  data_colnames_wanted <- colnames(dt)[data_columns_wanted] %>%
+    as.list()
 
   dt_write_excel <- dt[, c(meta_data_columns_wanted, colnames(dt)[data_columns_wanted])]
 
@@ -123,8 +144,15 @@ TFmakeCharts <- function(input_TF_make_charts){
 
   chart_references <- chart_references[chart_references %in% chart_reference_check]
 
+  ### Temporary measures until the Python script allows weighting input
+  dt_write_excel$`Unique Row ID` <- gsub(';USadultWeighting', '', dt_write_excel$`Unique Row ID`)
+  dt_write_excel$`Unique Crosstab ID` <- gsub(';USadultWeighting', '', dt_write_excel$`Unique Crosstab ID`)
+  chart_references <- gsub(';USadultWeighting', '', chart_references)
 
-  # write.table(dt_write_excel, file=paste0('tf 2021-09-07.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+  ###
+
+
+  # write.table(dt_write_excel, file=paste0('tf 2021-10-28.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   # Convert tag order column back to numeric if it has been converted to factor
   dt_write_excel$`Banner Tag Order` <- as.numeric(dt_write_excel$`Banner Tag Order`)
@@ -136,7 +164,7 @@ TFmakeCharts <- function(input_TF_make_charts){
   chart_references_py <- r_to_py(chart_references)
   file_name_py <- r_to_py(file_name)
 
-  # write.table(dt_write_excel, file=file_name, quote=TRUE, sep='\t', row.names=FALSE)
+  # write.table(dt_write_excel, file=paste0('~/TrendFinder/Outputs/2021-10-28/dt_write_excel 2021-10-28.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   source_python("~/TrendFinder/trendfinder/R/writeExcel.py")
 
@@ -153,4 +181,3 @@ TFmakeCharts <- function(input_TF_make_charts){
   }
 
 }
-

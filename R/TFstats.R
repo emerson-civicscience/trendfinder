@@ -1,6 +1,9 @@
 TFstats <- function(inputStats, cutoff_stats_flags){
+  # inputStats <- outputFormatted[which(outputFormatted$`Stem QID` == 0), ]
 
-  inputStats$`Stem QID`[which(is.na(inputStats$`Stem QID`))] <- 1
+  # inputStats$`Stem QID`[which(is.na(inputStats$`Stem QID`))] <- 1
+
+  ### Preliminary estimate is TFstats can do 35,000 topline results and 4200 segment/cross results per minute
 
   uniqueBannerQlist <- unique(inputStats$`Banner QID`)
 
@@ -90,6 +93,8 @@ TFstats <- function(inputStats, cutoff_stats_flags){
     }
   }
 
+
+
   for(segmentLoop in 1:length(uniqueBannerQlist)){
 
     outputSubset <- subset(outputStats, outputStats$`Banner QID`==uniqueBannerQlist[segmentLoop])
@@ -136,6 +141,8 @@ TFstats <- function(inputStats, cutoff_stats_flags){
       }
     }
   }
+
+
 
 
   # Create identifier for how many times a row has recently had statistical significance either in time or relative to topline
@@ -195,11 +202,16 @@ TFstats <- function(inputStats, cutoff_stats_flags){
     }
   }
 
-  View(subset(outputStats, `Chart` == 1))
+  if(exists('batch_time')){
+    outputStatsName <- outputName("Output - Responses - Formatted with Stats", batch_time = batch_time)
 
-  outputStatsName <- outputName("Output - Responses - Formatted with Stats", batchTime = batchTime)
+  } else{
+    outputStatsName <- outputName("Output - Responses - Formatted with Stats")
+  }
 
   saveRDS(outputStats, file = outputStatsName)
+
+  # write.table(outputStats, file=paste0(outputStatsName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   return(outputStats)
 
