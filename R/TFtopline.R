@@ -20,14 +20,12 @@ TFtopline <- function(toplineCondition){
     toplinePrecondition <- NULL
   }
 
-  toplineIDs <- groupIDlist[[toplineQuestion]] # Grab answer choice IDs from groupIDlist
 
-  if(is.null(toplineIDs)){
-    toplineIDs <- cs_get_question_metadata(toplineQuestion)$data %>%
-      rownames(.) %>%
-      as.numeric(.) %>%
-      as.list(.)
-  }
+  toplineIDs <- cs_get_question_metadata(toplineQuestion)$data %>%
+    rownames(.) %>%
+    as.numeric(.) %>%
+    as.list(.)
+
 
   toplineNames <- as.character(toplineIDs)# Use answer choice IDs as group names
 

@@ -142,7 +142,9 @@ TFmakeCharts <- function(input_TF_make_charts){
   													 dt_write_excel$`Stem Tag Banner Q`, dt_write_excel$`Tag Tag`) %>%
   	unique()
 
-  chart_references <- chart_references[chart_references %in% chart_reference_check]
+  chart_references <- chart_references[which(chart_references %in% chart_reference_check)]
+
+  # cat(paste(chart_references, collapse = '", "'))
 
   ### Temporary measures until the Python script allows weighting input
   dt_write_excel$`Unique Row ID` <- gsub(';USadultWeighting', '', dt_write_excel$`Unique Row ID`)
@@ -164,7 +166,7 @@ TFmakeCharts <- function(input_TF_make_charts){
   chart_references_py <- r_to_py(chart_references)
   file_name_py <- r_to_py(file_name)
 
-  # write.table(dt_write_excel, file=paste0('~/TrendFinder/Outputs/2021-10-28/dt_write_excel 2021-10-28.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+  write.table(dt_write_excel, file=paste0('~/TrendFinder/Outputs/2021-11-08/dt_write_excel 2021-11-08.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   source_python("~/TrendFinder/trendfinder/R/writeExcel.py")
 

@@ -5,7 +5,7 @@ TFwider <- function(inputWider){
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
   number_of_ID_columns <- 3
 
-  inputWiderSubset <- inputWider[,2:7] %>%
+  inputWiderSubset <- inputWider[, -which(colnames(inputWider) == 'batch')] %>%
     setorder(., "start_date", "end_date")
 
   inputWiderSubset <- unique(inputWiderSubset)
@@ -52,15 +52,12 @@ TFwider <- function(inputWider){
   inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('stem' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'stemQ'
 
-  dataKeyUSadults <- dataKey[which(dataKey$`Weighting Scheme` == "USadultWeighting"), ] %>%
-    .[, c('Answer ID', 'Question ID')]
-
-  inputWiderSubset <- left_join(inputWiderSubset, dataKeyUSadults, by = c('banner' = 'Answer ID')) # Use the 'basic' version of the dataKey to populate banner Qs
   # This will cause issues with questions segmented by themselves with funky weightings
   # Could adjust the crosstab handler so that only stem questions are modified by groupIDlist (which needs to be done away with anyway)
+  inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('banner' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'bannerQ'
 
-  inputWiderSubset$stemQ[which(is.na(inputWiderSubset$stemQ))] <- inputWiderSubset$stem[which(is.na(inputWiderSubset$stemQ))]
+  inputWiderSubset$stemQ[which(is.na(inputWiderSubset$stemQ))] <- inputWiderSubset$stem[which(is.na(inputWiderSubset$stemQ))] # This is for named segments
 
   inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
   inputWiderSubset$uniqueCrosstab <- paste(inputWiderSubset$stemQ, inputWiderSubset$bannerQ, inputWiderSubset$weighting_scheme, sep=";")

@@ -3,14 +3,12 @@ TFsegment <- function(segmentCondition, weightingDictSegments){
 	bannerQuestion <- segmentCondition[1] %>%
 		as.numeric()
 
-	bannerIDs <- groupIDlist[[bannerQuestion]] # Grab answer choice IDs from groupIDlist
 
-	if(is.null(bannerIDs)){
-		bannerIDs <- cs_get_question_metadata(bannerQuestion)$data %>%
-			rownames(.) %>%
-			as.numeric(.) %>%
-			as.list(.)
-	}
+	bannerIDs <- cs_get_question_metadata(bannerQuestion)$data %>%
+		rownames(.) %>%
+		as.numeric(.) %>%
+		as.list(.)
+
 
 	bannerNames <- as.character(bannerIDs)# Use answer choice IDs as group names
 
