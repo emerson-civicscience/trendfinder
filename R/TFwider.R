@@ -7,7 +7,9 @@ TFwider <- function(inputWider){
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
   number_of_ID_columns <- 3
 
-  inputWiderSubset <- inputWider[,2:7] %>%
+  input_colnames_wanted <- c("start_date", "end_date", "stem", "banner", "weighting_scheme", "response_count")
+
+  inputWiderSubset <- inputWider[, input_colnames_wanted] %>%
     setorder(., "start_date", "end_date")
 
   inputWiderSubset <- unique(inputWiderSubset)
