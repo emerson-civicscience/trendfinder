@@ -1,6 +1,6 @@
 TFformat <- function(inputFormat){
 
-  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-10-28/outputWider.rds')
+  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-11-22/Output Results - Batch Time 2021-11-22 20:02:15 EST.rds')
   # inputFormat <- outputWider
 
   inputFormat <- unique(inputFormat)

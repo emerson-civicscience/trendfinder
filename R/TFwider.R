@@ -5,17 +5,17 @@ TFwider <- function(inputWider){
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
   number_of_ID_columns <- 3
 
-  inputWiderSubset <- inputWider[, -which(colnames(inputWider) == 'batch')] %>%
+  input_colnames_wanted <- c("start_date", "end_date", "stem", "banner", "weighting_scheme", "response_count")
+
+  inputWiderSubset <- inputWider[, input_colnames_wanted] %>%
     setorder(., "start_date", "end_date")
 
-  inputWiderSubset <- unique(inputWiderSubset)
   inputWiderSubset <- inputWiderSubset[!duplicated(inputWiderSubset[,1:5]),]
   # If you've managed to compute the same values more than once, this keeps just the first occurence
 
-  outputStatsName <- outputName("Output - Stats", batch_time = batch_time)
+  # outputStatsName <- outputName("Output - Stats", batch_time = batch_time)
 
-  inputWiderSubset[is.na(inputWiderSubset)] <- 0
-  inputWiderSubset <- unique(inputWiderSubset)
+  inputWiderSubset$response_count[which(is.na(inputWiderSubset$response_count))] <- 0
 
   inputWiderSubset <- pivot_wider(inputWiderSubset,
                                   names_from = c(start_date, end_date),
@@ -36,11 +36,6 @@ TFwider <- function(inputWider){
   # totalColNames <- gsub('response count', 'total responses', inputDataColNames)
 
   baseColNames <- c('unique', 'weighting_scheme', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
-
-  baseColsEnd <- length(baseColNames)
-  dataColsEnd <- baseColsEnd+length(inputDataColNames)
-  # totalColsEnd <- dataColsEnd+length(totalColNames)
-
 
   inputWiderSubset$stem <- as.character(inputWiderSubset$stem)
   inputWiderSubset$banner <- as.character(inputWiderSubset$banner)
