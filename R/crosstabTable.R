@@ -73,31 +73,25 @@ crosstabTable <- function (precondition = NULL,
     names(data)[names(data) == "text.1"] <- "stem"
     names(data)[names(data) == "text.2"] <- "banner"
 
-    total_responses <- sum(data$response.count, na.rm = T)
+    # total_responses <- sum(data$response.count, na.rm = T)
 
     return(list(start_date = start_date,
                 end_date= end_date,
-                data = data,
-                total.responses = total_responses))
+                data = data#,
+                # total.responses = total_responses
+           ))
 
   }, error = function(e) {
 
-    CGX <- cs_get_crosstab(question.ids, access.key = access.key,
-                           secret.key = secret.key)
-    data <- data.frame(answer.choice.id.1 = CGX$data$V1,
-                       answer.choice.id.2 = CGX$data$V2, text.1 = CGX$data$text.1,
-                       text.2 = CGX$data$text.2, response.count = 0)
+    data <- expand.grid(row.answer.group.ids, col.answer.group.ids)
+    colnames(data) <- c("stem", "banner")
+    data$response.count <- NA
 
-    data <- cs_ccb_ag(data, row.answer.group.ids, row.answer.group.names,
-                      col.answer.group.ids, col.answer.group.names)
-
-
-    names(data)[names(data) == "text.1"] <- "stem"
-    names(data)[names(data) == "text.2"] <- "banner"
 
     return(list(start_date = start_date,
                 end_date= end_date,
-                data = data,
-                total.responses = NA))
+                data = data#,
+                # total.responses = NA
+           ))
   } )
 }

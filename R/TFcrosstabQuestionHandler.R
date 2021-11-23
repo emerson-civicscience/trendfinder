@@ -3,25 +3,31 @@ TFcrosstabQuestionHandler <- function(crosstab_input = NULL,
 																			banner_questions = NULL,
 																			weighting_schemes = NULL){
 
-    if(!is.null(stem_questions) && !is.null(banner_questions)){
+  if(!is.null(stem_questions) && !is.null(banner_questions)){
 
-      stem_banner_cross <- expand.grid(stem_questions, banner_questions)
-      colnames(stem_banner_cross) <- c('seg', 'com')
+    stem_banner_cross <- expand.grid(stem_questions, banner_questions)
+    colnames(stem_banner_cross) <- c('seg', 'com')
 
-      crosstab_input <- rbind(stem_banner_cross, crosstab_input)
-    }
+    if(is.null(weighting_schemes)){
+    	stem_banner_cross$weight <- NA
+    } else{
 
-	crosstab_input$weights <- "USadultWeighting"
+      for(i in weighting_schemes){
 
-    if(length(weighting_schemes) > 0){
-
-      crosstab_input_copy <- crosstab_input
-      for(scheme_loop in weighting_schemes){
-        crosstab_input_copy$weights <- scheme_loop
-
-        crosstab_input <- rbind(crosstab_input, crosstab_input_copy)
+      	if(ncol(stem_banner_cross == 2)){
+      		stem_banner_cross$weight <- i
+      		if(length(weighting_schemes > 1)){
+      			stem_banner_cross_weight <- stem_banner_cross
+      		}
+      	} else{
+      		stem_banner_cross_weight$weight <- i
+      		stem_banner_cross <- rbind(stem_banner_cross, stem_banner_cross_weight)
+      	}
       }
     }
+
+    crosstab_input <- rbind(stem_banner_cross, crosstab_input)
+  }
 
 	crosstab_input <- unique(crosstab_input)
 

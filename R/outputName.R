@@ -2,7 +2,7 @@
 outputName <- function(outputType = NULL,
                        batch_time = NULL) {
 
-  batch_time_file_name <- batchTime %>%
+  batch_time_file_name <- batch_time %>%
     as.character() %>%
     str_replace_all(':', '_') %>%
     paste0(., " EDT")

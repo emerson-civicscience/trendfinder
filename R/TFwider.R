@@ -1,15 +1,11 @@
 TFwider <- function(inputWider){
   # inputWider <- outputResults
 
-  ### NEED TO ADD ALL NA Qs to dataKey
-
   # weights, stem, and banne are ID columns
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
   number_of_ID_columns <- 3
 
-  input_colnames_wanted <- c("start_date", "end_date", "stem", "banner", "weighting_scheme", "response_count")
-
-  inputWiderSubset <- inputWider[, input_colnames_wanted] %>%
+  inputWiderSubset <- inputWider[, -which(colnames(inputWider) == 'batch')] %>%
     setorder(., "start_date", "end_date")
 
   inputWiderSubset <- unique(inputWiderSubset)
@@ -37,38 +33,36 @@ TFwider <- function(inputWider){
 
   names(inputWiderSubset)[(number_of_ID_columns+1):length(inputWiderSubset)] <- inputDataColNames
 
-  totalColNames <- gsub('response count', 'total responses', inputDataColNames)
+  # totalColNames <- gsub('response count', 'total responses', inputDataColNames)
 
   baseColNames <- c('unique', 'weighting_scheme', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
 
   baseColsEnd <- length(baseColNames)
   dataColsEnd <- baseColsEnd+length(inputDataColNames)
-  totalColsEnd <- dataColsEnd+length(totalColNames)
+  # totalColsEnd <- dataColsEnd+length(totalColNames)
 
 
   inputWiderSubset$stem <- as.character(inputWiderSubset$stem)
   inputWiderSubset$banner <- as.character(inputWiderSubset$banner)
   inputWiderSubset$weights <- as.character(inputWiderSubset$weighting_scheme)
-  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
+  # inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
 
   dataKeySubset <- dataKey[, c('Answer ID', 'Weighting Scheme', 'Question ID')]
 
   inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('stem' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'stemQ'
 
-  dataKeyUSadults <- dataKey[which(dataKey$`Weighting Scheme` == "USadultWeighting"), ] %>%
-    .[, c('Answer ID', 'Question ID')]
-
-  inputWiderSubset <- left_join(inputWiderSubset, dataKeyUSadults, by = c('banner' = 'Answer ID')) # Use the 'basic' version of the dataKey to populate banner Qs
   # This will cause issues with questions segmented by themselves with funky weightings
   # Could adjust the crosstab handler so that only stem questions are modified by groupIDlist (which needs to be done away with anyway)
+  inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('banner' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'bannerQ'
 
-  inputWiderSubset$stemQ[which(is.na(inputWiderSubset$stemQ))] <- inputWiderSubset$stem[which(is.na(inputWiderSubset$stemQ))]
+  inputWiderSubset$stemQ[which(is.na(inputWiderSubset$stemQ))] <- inputWiderSubset$stem[which(is.na(inputWiderSubset$stemQ))] # This is for named segments
 
+  inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
   inputWiderSubset$uniqueCrosstab <- paste(inputWiderSubset$stemQ, inputWiderSubset$bannerQ, inputWiderSubset$weighting_scheme, sep=";")
 
-  inputWiderSubset <- inputWiderSubset[, c(baseColNames, inputDataColNames)]
+  outputWider <- inputWiderSubset[, c(baseColNames, inputDataColNames)]
   # totalsTable <- matrix(0L, nrow=nrow(inputWiderSubset), ncol=numberOfPeriods)
   #
   # inputWiderSubset <- cbind(inputWiderSubset, totalsTable) %>%
@@ -84,17 +78,18 @@ TFwider <- function(inputWider){
   #
   #   toTotalTable <- inputWiderSubset[, c('uniqueCrosstab', inputDataColNames)]
 
-  inputWiderSubset$weightAndStemAndBannerQ <- paste0(inputWiderSubset$weighting_scheme, ';', inputWiderSubset$stem, ';', inputWiderSubset$bannerQ)
+  # inputWiderSubset$weightAndStemAndBannerQ <- paste0(inputWiderSubset$weighting_scheme, ';', inputWiderSubset$stem, ';', inputWiderSubset$bannerQ)
 
-  totalTable <- aggregate(. ~ weightAndStemAndBannerQ, inputWiderSubset[, c('weightAndStemAndBannerQ', inputDataColNames)], sum)
+  # totalTable <- aggregate(. ~ weightAndStemAndBannerQ, inputWiderSubset[, c('weightAndStemAndBannerQ', inputDataColNames)], sum)
 
-  colnames(totalTable)[2] <- gsub('response count', 'total responses', colnames(totalTable)[2])
+  # colnames(totalTable)[2] <- gsub('response count', 'total responses', colnames(totalTable)[2])
 
-  outputWider <- left_join(inputWiderSubset, totalTable, by = 'weightAndStemAndBannerQ')
+  # outputWider <- left_join(inputWiderSubset, totalTable, by = 'weightAndStemAndBannerQ')
 
-  outputWider <- outputWider[ , -which(colnames(outputWider)=='weightAndStemAndBannerQ')]
+  # outputWider <- outputWider[ , -which(colnames(outputWider)=='weightAndStemAndBannerQ')]
 
-  names(outputWider) <- c(baseColNames, inputDataColNames, totalColNames)
+  # names(outputWider) <- c(baseColNames, inputDataColNames, totalColNames)
+  names(outputWider) <- c(baseColNames, inputDataColNames)
 
   # outputWider$stemQ[which(is.na(outputWider$stemQ))] <- 1
 

@@ -76,8 +76,9 @@ questionTable <- function (precondition,
 
       return(list(start_date = start_date,
                   end_date = end_date,
-                  data = data,
-                  total.responses = total.responses))
+                  data = data#,
+                  # total.responses = total.responses
+                  ))
     }
   }, error = function(e) {
 
@@ -101,8 +102,9 @@ questionTable <- function (precondition,
 
     return(list(start_date = start_date,
                 end_date = end_date,
-                data = data,
-                total.responses = NA))
+                data = data#,
+                # total.responses = NA
+                ))
 
   } )
 
