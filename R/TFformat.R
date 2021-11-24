@@ -1,7 +1,7 @@
 TFformat <- function(inputFormat){
 
-  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-11-22/outputWider.rds')
   # inputFormat <- outputWider
+  # inputFormat <- TFwider(readRDS('~/TrendFinder/Outputs/2021-11-22/Output Results - Batch Time 2021-11-22 20:02:15 EST.rds'))
 
   inputFormat <- inputFormat[!duplicated(inputFormat), ]
 
@@ -30,6 +30,12 @@ TFformat <- function(inputFormat){
                                                    numberOfPeriods = numberOfPeriods)
 
   outputFormatted <- rbind(outputFormatted, answer_grouping_table[, colnames(outputFormatted)])
+
+  # groupsWanted <- c(10857, 11405, 11238, 11246, 15222, 10769)
+  # stemGroups <- which(outputFormatted$`Stem Answer Group ID` %in% groupsWanted)
+  # bannerGroups <- which(outputFormatted$`Banner Answer Group ID` %in% groupsWanted)
+  # groups <- unique(c(stemGroups, bannerGroups))
+  # outputFormatted <- outputFormatted[groups, ]
 
   outputFormatted$weighting_stem_bannerQ_and_answer_groups <- paste(outputFormatted$weighting_scheme,
                                                                     outputFormatted$stem,
@@ -72,6 +78,7 @@ TFformat <- function(inputFormat){
                                by = 'weighting_stem_bannerQ_and_answer_groups')
 
   outputFormatted <- outputFormatted[, -which(colnames(outputFormatted) == "weighting_stem_bannerQ_and_answer_groups")]
+  outputFormatted <- outputFormatted[!duplicated(outputFormatted$unique), ]
 
 
 
@@ -114,12 +121,9 @@ TFformat <- function(inputFormat){
 
   }
 
-  dataKeySubset <- dataKey[, c('Answer ID', 'Answer Grouping', 'Weighting Scheme', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')]
-
-  dataKeySubset$`Answer Grouping` <- as.numeric(dataKeySubset$`Answer Grouping`)
+  dataKeySubset <- dataKey[, c('Answer ID', 'Weighting Scheme', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')]
 
   outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('stem' = 'Answer ID',
-                                                                       'Stem Answer Group ID' = 'Answer Grouping',
                                                                        'weighting_scheme' = 'Weighting Scheme'))
 
   colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("Answer Text",
@@ -136,7 +140,6 @@ TFformat <- function(inputFormat){
 
 
   outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('banner' = 'Answer ID',
-                                                                       'Banner Answer Group ID' = 'Answer Grouping',
                                                                        'weighting_scheme' = 'Weighting Scheme'))
 
   colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("Answer Text",
