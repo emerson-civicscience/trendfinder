@@ -1,5 +1,5 @@
 TFwider <- function(inputWider){
-  # inputWider <- outputResults
+  # inputWider <- allResults
 
   # weights, stem, and banne are ID columns
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
@@ -23,7 +23,7 @@ TFwider <- function(inputWider){
 
   numberOfPeriods <- ncol(inputWiderSubset) - number_of_ID_columns
 
-  inputWiderSubset[is.na(inputWiderSubset)] <- 0
+  # inputWiderSubset[is.na(inputWiderSubset)] <- 0
 
   inputColNames <- names(inputWiderSubset)
 
@@ -42,13 +42,15 @@ TFwider <- function(inputWider){
   inputWiderSubset$weights <- as.character(inputWiderSubset$weighting_scheme)
   # inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
 
-  dataKeySubset <- dataKey[, c('Answer ID', 'Weighting Scheme', 'Question ID')]
+  dataKeySubset <- dataKey[-grep(',', dataKey$`Answer ID`), ]
+  dataKeySubset <- dataKeySubset[-grep(',', dataKeySubset$`Question ID`), ]
+  dataKeySubset <- dataKeySubset[, c('Answer ID', 'Weighting Scheme', 'Question ID')]
+  dataKeySubset <- dataKeySubset[!duplicated(dataKeySubset), ]
 
   inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('stem' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'stemQ'
 
   # This will cause issues with questions segmented by themselves with funky weightings
-  # Could adjust the crosstab handler so that only stem questions are modified by groupIDlist (which needs to be done away with anyway)
   inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('banner' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'bannerQ'
 

@@ -26,8 +26,8 @@ TFageCrosstab <- function(input_row){
 
   tryCatch({
 
-    crosstabResults <- lapply(crosstab_age, as.data.table) %>%
-      do.call(rbind, .)
+    crosstabResults <- rbind(crosstab_age[[1]], crosstab_age[[2]]) %>%
+      data.table()
 
     crosstabResults <- aggregate(crosstabResults$response.count, by = list(Gender = crosstabResults$response.text.2, Age = crosstabResults$text.1), FUN = sum)
 

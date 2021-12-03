@@ -1,6 +1,6 @@
 TFweightsHandler <- function(scheme_name){
 
-	unlisted_weight <- weightingDict$value[which(weightingDict$scheme_name == scheme_name)] %>%
+	unlisted_weight <- weighting_dict$value[which(weighting_dict$scheme_name == scheme_name)] %>%
 		unlist()
 
 	weights = list(

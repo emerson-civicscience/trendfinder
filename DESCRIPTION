@@ -25,7 +25,11 @@ Imports:
     tidyr,
     lubridate,
     xlsx,
-    reticulate
+    reticulate,
+    lubridate,
+    RMySQL,
+    DBI,
+    usethis
 License: 
 Encoding: UTF-8
 LazyData: true

@@ -27,7 +27,7 @@ unless there's a valid reason (internal consistency or other accepted standards 
 
 Speaking of there being a trendfinder package--there's a trendfinder package! It's my first one and it is fairly
 involved, and I didn't take the trouble to learn proper documentation, create vignettes, or fully grok the interplay
-of libraries/dependencies, functions, @params, etc. I mean, even this documentation of an empty function as a sort
+of libraries/dependencies, functions, params, etc. I mean, even this documentation of an empty function as a sort
 of readme file is highly suspect. I'm happy to do things correctly if time allows and it is deemed necessary, but as
 this is something of a stop-gap I'm not going to do it presently.
 
@@ -36,4 +36,7 @@ something like "US Geography" I think it's not too vague. However, I kept coming
 USAdults, usAdults, UsAdults all look strange to me. Enter: gonCase. gonCase emphasizes readability of obvious
 abbreviations by requiring capitalization of the abbreviation and that any leading or trailing letters are lower case.
 gonCase: whenAcronymsAreDesiredAndUnderscoresAreLoathedWithLessWTFfactor
+}
+\examples{
+such example
 }

@@ -1,6 +1,6 @@
 TFanswerGroupingRefs <- function(unique_answer_groupings = NULL){
 
-	answer_groupings <- arrange(answer_groupings, `Answer ID`)
+	answer_groupings <- arrange(answer_groupings, as.numeric(`Answer ID`))
 	unique_answer_groups <- unique(answer_groupings$`Answer Group ID`)
 
 
