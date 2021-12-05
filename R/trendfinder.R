@@ -13,7 +13,7 @@
 #'
 #' Speaking of there being a trendfinder package--there's a trendfinder package! It's my first one and it is fairly
 #' involved, and I didn't take the trouble to learn proper documentation, create vignettes, or fully grok the interplay
-#' of libraries/dependencies, functions, @params, etc. I mean, even this documentation of an empty function as a sort
+#' of libraries/dependencies, functions, params, etc. I mean, even this documentation of an empty function as a sort
 #' of readme file is highly suspect. I'm happy to do things correctly if time allows and it is deemed necessary, but as
 #' this is something of a stop-gap I'm not going to do it presently.
 #'
@@ -25,7 +25,8 @@
 #'
 #' @param so many
 #' @return all the insights
-#' @examples
+#' @examples such example
 trendfinder <- function() {
-  # find the trends
+	2 + 2 # = 5
+	# find the trends
 }

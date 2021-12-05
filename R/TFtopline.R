@@ -10,7 +10,7 @@ TFtopline <- function(toplineCondition){
   scheme_name <- toplineCondition[3] %>%
     as.character()
 
-  weights <- weightingDict[which(weightingDict$scheme_name == scheme_name),2][[1]][[1]]
+  weights <- weighting_dict[which(weighting_dict$scheme_name == scheme_name),2][[1]][[1]]
 
   age_gender_precondition <- TFageGenderPrecondition(weights)
 
@@ -31,11 +31,11 @@ TFtopline <- function(toplineCondition){
 
 
   toplineResults <- lapply(toplinePrecondition, questionTable,
-                                     questionID = toplineQuestion,
-                                     answer.group.ids = toplineIDs,
-                                     answer.group.names = toplineNames,
-                                     weights = weights,
-                                     segmentText = "0")
+                           questionID = toplineQuestion,
+                           answer.group.ids = toplineIDs,
+                           answer.group.names = toplineNames,
+                           weights = weights,
+                           segmentText = "0")
 
   toplineResults <- lapply(toplineResults, as.data.table) %>%
     do.call(rbind, .)

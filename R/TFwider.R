@@ -1,21 +1,21 @@
 TFwider <- function(inputWider){
-  # inputWider <- outputResults
+  # inputWider <- allResults
 
   # weights, stem, and banne are ID columns
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
   number_of_ID_columns <- 3
 
-  inputWiderSubset <- inputWider[, -which(colnames(inputWider) == 'batch')] %>%
+  input_colnames_wanted <- c("start_date", "end_date", "stem", "banner", "weighting_scheme", "response_count")
+
+  inputWiderSubset <- inputWider[, input_colnames_wanted] %>%
     setorder(., "start_date", "end_date")
 
-  inputWiderSubset <- unique(inputWiderSubset)
   inputWiderSubset <- inputWiderSubset[!duplicated(inputWiderSubset[,1:5]),]
   # If you've managed to compute the same values more than once, this keeps just the first occurence
 
-  outputStatsName <- outputName("Output - Stats", batch_time = batch_time)
+  # outputStatsName <- outputName("Output - Stats", batch_time = batch_time)
 
-  inputWiderSubset[is.na(inputWiderSubset)] <- 0
-  inputWiderSubset <- unique(inputWiderSubset)
+  inputWiderSubset$response_count[which(is.na(inputWiderSubset$response_count))] <- 0
 
   inputWiderSubset <- pivot_wider(inputWiderSubset,
                                   names_from = c(start_date, end_date),
@@ -23,7 +23,7 @@ TFwider <- function(inputWider){
 
   numberOfPeriods <- ncol(inputWiderSubset) - number_of_ID_columns
 
-  inputWiderSubset[is.na(inputWiderSubset)] <- 0
+  # inputWiderSubset[is.na(inputWiderSubset)] <- 0
 
   inputColNames <- names(inputWiderSubset)
 
@@ -37,23 +37,20 @@ TFwider <- function(inputWider){
 
   baseColNames <- c('unique', 'weighting_scheme', 'stem', 'banner', 'uniqueCrosstab', 'stemQ', 'bannerQ')
 
-  baseColsEnd <- length(baseColNames)
-  dataColsEnd <- baseColsEnd+length(inputDataColNames)
-  # totalColsEnd <- dataColsEnd+length(totalColNames)
-
-
   inputWiderSubset$stem <- as.character(inputWiderSubset$stem)
   inputWiderSubset$banner <- as.character(inputWiderSubset$banner)
   inputWiderSubset$weights <- as.character(inputWiderSubset$weighting_scheme)
   # inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
 
-  dataKeySubset <- dataKey[, c('Answer ID', 'Weighting Scheme', 'Question ID')]
+  dataKeySubset <- dataKey[-grep(',', dataKey$`Answer ID`), ]
+  dataKeySubset <- dataKeySubset[-grep(',', dataKeySubset$`Question ID`), ]
+  dataKeySubset <- dataKeySubset[, c('Answer ID', 'Weighting Scheme', 'Question ID')]
+  dataKeySubset <- dataKeySubset[!duplicated(dataKeySubset), ]
 
   inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('stem' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'stemQ'
 
   # This will cause issues with questions segmented by themselves with funky weightings
-  # Could adjust the crosstab handler so that only stem questions are modified by groupIDlist (which needs to be done away with anyway)
   inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('banner' = 'Answer ID', 'weighting_scheme' = 'Weighting Scheme'))
   names(inputWiderSubset)[names(inputWiderSubset)=='Question ID'] <- 'bannerQ'
 
