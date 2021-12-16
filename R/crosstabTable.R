@@ -13,10 +13,10 @@ crosstabTable <- function (precondition = NULL,
 {
 
   ### Try commenting these out
-  library(dplyr)
-  library(ggplot2)
-  library(gridExtra)
-  library(lubridate)
+  # library(dplyr)
+  # library(ggplot2)
+  # library(gridExtra)
+  # library(lubridate)
 
   if(grepl(":day>=", precondition)){
     start_date <- sub('.*:day>=', '', precondition) %>%
@@ -50,8 +50,7 @@ crosstabTable <- function (precondition = NULL,
         dplyr::arrange(text.1,
                        text.2)
 
-      data <- cs_ccb_ag(data, row.answer.group.ids, row.answer.group.names,
-                        col.answer.group.ids, col.answer.group.names)
+      data <- cs_ccb_ag(data)
 
 
 
@@ -60,8 +59,11 @@ crosstabTable <- function (precondition = NULL,
       data <- cs_weight_crosstab_data(CGX$data, weights, cross = TRUE)
 
       # Check here for what is passed when there's no answer choice IDs
-      data <- cs_ccb_ag(data, row.answer.group.ids, row.answer.group.names,
-                          col.answer.group.ids, col.answer.group.names)
+      # data <- cs_ccb_ag(data,
+      #                   row.answer.group.ids,
+      #                   row.answer.group.names,
+      #                   col.answer.group.ids,
+      #                   col.answer.group.names)
 
 
       # If there are 0 responses for a row, the API helpfully* doesn't return a row    *Helpfully is sarcasm
@@ -70,8 +72,10 @@ crosstabTable <- function (precondition = NULL,
       # the response table
     }
 
-    names(data)[names(data) == "text.1"] <- "stem"
-    names(data)[names(data) == "text.2"] <- "banner"
+    names(data)[names(data) == "answer.choice.id.1"] <- "stem"
+    names(data)[names(data) == "answer.choice.id.2"] <- "banner"
+
+    data <- data[, c("stem", "banner", "response.count")]
 
     # total_responses <- sum(data$response.count, na.rm = T)
 

@@ -27,9 +27,6 @@ def writeExcel(pandas_df,
   
   chart_number = 0
   chart_dict = {}
-  
-  truncated_counter = 0
-  
   writer = pd.ExcelWriter(file_name_py, engine='xlsxwriter')
   workbook = writer.book
   
@@ -49,9 +46,9 @@ def writeExcel(pandas_df,
     add_list = [first_data_col] * len(series)
     series = list(map(operator.add, series, add_list))
     series = list(map(xw.utility.xl_col_to_name, series))
-    
+
     chart_name = 'chart' + str(chart_number)
-    
+
     # Create a chart object.
     chart = workbook.add_chart({'type': 'column'}) # subtype???
     chart.set_size({'width': 1124, 'height': 450})
@@ -101,7 +98,7 @@ def writeExcel(pandas_df,
         })
 
     worksheet.insert_chart(chart_row, chart_col, chart_dict[chart_name])
-    worksheet.set_zoom(70)
+    worksheet.set_zoom(80)
         
 
   if chart_references_py != None:
@@ -112,22 +109,37 @@ def writeExcel(pandas_df,
         crosstab_stem_ref = '0;' + crosstab_stem
         crosstab_banner_ref = '0;' + crosstab_banner
         
+        # So...in the many part series of 'emerson tries to add answer groupings to TrendFinder,' 
+        # our hero has discovered that, once again, adding the word 'group' to the ID columns
+        # is a bad idea. For now, split the above _ref variables by ', Group ' if available and join
+        # back together later.
+        
+        if crosstab_stem.find('Group') != -1:
+            crosstab_stem_ungrouped, crosstab_stem_group = crosstab_stem.split(', Group ')
+        else:
+            crosstab_stem_ungrouped = crosstab_stem
+            
+        if crosstab_banner.find('Group') != -1:
+            crosstab_banner_ungrouped, crosstab_banner_group = crosstab_banner.split(', Group ')
+        else:
+            crosstab_banner_ungrouped = crosstab_banner
+        
         stem_qtext = None
         banner_qtext = None
 
         try:
-            crosstab_stem = np.int64(crosstab_stem)
+            crosstab_stem_ungrouped = np.int64(crosstab_stem_ungrouped)
         except ValueError:
             pass
         try:
-            crosstab_banner = np.int64(crosstab_banner)
+            crosstab_banner_ungrouped = np.int64(crosstab_banner_ungrouped)
         except ValueError:
             pass
 
-        if type(crosstab_stem) is str and type(crosstab_banner) is str:
+        if type(crosstab_stem_ungrouped) is str and type(crosstab_banner_ungrouped) is str:
             crosstab_df = pandas_df.loc[pandas_df['Stem Q Banner Tag'].isin([crosstab_stem_ref,
                                                                               crosstab_banner_ref]) | 
-                                        pandas_df['Tag Tag'].isin([crosstab_loop])].copy()
+                                pandas_df['Tag Tag'].isin([crosstab_loop])].copy()
             crosstab_df.loc[crosstab_df['Stem Q Banner Tag'] == crosstab_stem_ref, 'Unique Crosstab ID'] = crosstab_stem_ref
             crosstab_df.loc[crosstab_df['Stem Q Banner Tag'] == crosstab_banner_ref, 'Unique Crosstab ID'] = crosstab_banner_ref
             crosstab_df.loc[crosstab_df['Tag Tag'] == crosstab_loop, 'Unique Crosstab ID'] = crosstab_loop
@@ -141,7 +153,7 @@ def writeExcel(pandas_df,
             stem_qtext = crosstab_stem
             banner_qtext = crosstab_banner
 
-        elif type(crosstab_stem) is str:
+        elif type(crosstab_stem_ungrouped) is str:
             crosstab_df = pandas_df.loc[pandas_df['Unique Crosstab ID'].isin([crosstab_banner_ref]) |
                                         pandas_df['Stem Q Banner Tag'].isin([crosstab_stem_ref]) |
                                         pandas_df['Stem Tag Banner Q'].isin([crosstab_loop])].copy()
@@ -155,7 +167,7 @@ def writeExcel(pandas_df,
             crosstab_df = crosstab_df.sort_values(by=['Stem Tag Order', 'Unique Row ID'])
             stem_qtext = crosstab_stem
 
-        elif type(crosstab_banner) is str:
+        elif type(crosstab_banner_ungrouped) is str:
             crosstab_df = pandas_df.loc[pandas_df['Unique Crosstab ID'].isin([crosstab_stem_ref]) | 
                                         pandas_df['Stem Q Banner Tag'].isin([crosstab_banner_ref]) |
                                         pandas_df['Stem Q Banner Tag'].isin([crosstab_loop])].copy()
@@ -290,6 +302,7 @@ def writeExcel(pandas_df,
             
                 category_name_row = str(first_table_row+3)
                 chart_title_crosstab_2_formula = '=' + banner_qtext_location + '&" cut by "&' 
+            
                 makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
 				
   writer.save()

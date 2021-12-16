@@ -3,16 +3,18 @@ TFcrosstab <- function(crosstabCondition,
                        data_end_dates){
 
   stemQuestion <- as.numeric(crosstabCondition[1])
+  bannerQuestion <- as.numeric(crosstabCondition[2])
 
+  # Initially wanted the ability to put answer group names into the API, but since answer groupings
+  # are now handled ad hoc after computation of ungrouped results, they are only needed for error handling
+  # (can (and probably should) be moved to crosstabTable()).
   stemIDs <- cs_get_question_metadata(stemQuestion)$data %>%
     rownames(.) %>%
     as.numeric(.) %>%
     as.list(.)
 
-
   stemNames <- as.character(stemIDs)# Use answer choice IDs as group names
 
-  bannerQuestion <- as.numeric(crosstabCondition[2])
 
   bannerIDs <- cs_get_question_metadata(bannerQuestion)$data %>%
     rownames(.) %>%

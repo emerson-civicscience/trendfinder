@@ -3,9 +3,10 @@ TFdateHandler <- function(data_start_dates, data_end_dates = NULL, time_period_l
 	# Create vector of exclusive end dates by removing the first entry from data_start_dates, then
 	# add one more entry that is the same length of time between the last two entries of data_start_dates (unless it exceeds today)
 
-	data_start_dates <- ymd(data_start_dates)
-
 	if(is.null(data_end_dates)){
+
+		data_start_dates <- ymd(data_start_dates)
+
 		data_end_dates <- data_start_dates %>%
 			.[-1]
 
@@ -25,7 +26,7 @@ TFdateHandler <- function(data_start_dates, data_end_dates = NULL, time_period_l
 		data_end_dates[length(data_end_dates)] <- today()+1
 	}
 
-	data_end_dates <- (data_end_dates - 1) %>%
+	data_end_dates <- (ymd(data_end_dates) - 1) %>%
 		as.character()
 
 	return(data_end_dates)

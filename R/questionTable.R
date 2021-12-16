@@ -11,10 +11,10 @@ questionTable <- function (precondition,
 
 {
   ### Try commenting all these libraries out
-  library(ggplot2)
-  library(grid)
-  library(gridExtra)
-  library(lubridate)
+  # library(ggplot2)
+  # library(grid)
+  # library(gridExtra)
+  # library(lubridate)
 
   question.id <- c(questionID, 484, 7078)
 
@@ -53,7 +53,7 @@ questionTable <- function (precondition,
     }
 
     if(!is.null(data)){
-      if (is.null(answer.group.ids)){
+      if(is.null(answer.group.ids)){
 
         names(data)[names(data) == "text.1"] <- "stem"
         names(data)[names(data) == "Row.names"] <- "banner"
@@ -64,6 +64,10 @@ questionTable <- function (precondition,
 
 
       } else {
+
+        answer.group.ids <- as.list(data$Row.names)
+        answer.group.ids <- data$Row.names
+
         data <- cs_cqb_ag(data,
                           answer.group.ids = answer.group.ids,
                           answer.group.names = answer.group.names)
