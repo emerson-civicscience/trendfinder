@@ -21,19 +21,21 @@ TFtopline <- function(toplineCondition){
   }
 
 
-  toplineIDs <- cs_get_question_metadata(toplineQuestion)$data %>%
-    rownames(.) %>%
-    as.numeric(.) %>%
-    as.list(.)
-
-
-  toplineNames <- as.character(toplineIDs)# Use answer choice IDs as group names
+  # Initially wanted the ability to put answer group names into the API, but since answer groupings
+  # are now handled ad hoc after computation of ungrouped results, they are not needed
+  # toplineIDs <- cs_get_question_metadata(toplineQuestion)$data %>%
+  #   rownames(.) %>%
+  #   as.numeric(.) %>%
+  #   as.list(.)
+  #
+  #
+  # toplineNames <- as.character(toplineIDs)# Use answer choice IDs as group names
 
 
   toplineResults <- lapply(toplinePrecondition, questionTable,
                            questionID = toplineQuestion,
-                           answer.group.ids = toplineIDs,
-                           answer.group.names = toplineNames,
+                           # answer.group.ids = toplineIDs,
+                           # answer.group.names = toplineNames,
                            weights = weights,
                            segmentText = "0")
 

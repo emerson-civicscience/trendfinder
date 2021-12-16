@@ -1,9 +1,7 @@
 TFstats <- function(inputStats, cutoff_stats_flags){
-  # inputStats <- outputFormatted[which(outputFormatted$`Stem QID` == 0), ]
+  # inputStats <- outputFormatted
 
-  # inputStats$`Stem QID`[which(is.na(inputStats$`Stem QID`))] <- 1
-
-  ### Preliminary estimate is TFstats can do 35,000 topline results and 4200 segment/cross results per minute
+  ### Preliminary estimate is TFstats can do 35,000 topline results and 4200 segment/cross results per hour
 
   uniqueBannerQlist <- unique(inputStats$`Banner QID`)
 

@@ -71,13 +71,13 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 	answer_grouping_table$`Stem Answer ID` <- answer_grouping_table$`Answer ID`
 	answer_grouping_table$unique <- paste(
 		paste0(answer_grouping_table$`Stem Answer ID`, ', Group ', answer_grouping_table$`Stem Answer Group ID`),
-		paste0(answer_grouping_table$`Banner Answer ID`, ', Group ', answer_grouping_table$`Banner Answer Group ID`),
+		answer_grouping_table$`Banner Answer ID`,
 		answer_grouping_table$weighting_scheme,
 		sep = ";"
 	)
 	answer_grouping_table$uniqueCrosstab <- paste(
 		paste0(answer_grouping_table$stemQ, ', Group ', answer_grouping_table$`Stem Answer Group ID`),
-		paste0(answer_grouping_table$bannerQ, ', Group ', answer_grouping_table$`Banner Answer Group ID`),
+		answer_grouping_table$bannerQ,
 		answer_grouping_table$weighting_scheme,
 		sep = ";"
 	)

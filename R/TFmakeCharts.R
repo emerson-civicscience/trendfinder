@@ -105,7 +105,7 @@ TFmakeCharts <- function(input_TF_make_charts){
                                 "Banner QID", "Banner QText", "Banner ID (answers)", "Banner Name", "Banner Tag Order", "Banner Label",
                                 "Stem Q Banner Tag", "Stem Tag Banner Q", "Tag Tag")
 
-  if("Period 1" %in% colnames(dt)){
+  if("Period 1 - Period 2" %in% colnames(dt)){
     data_columns_wanted <- (grep("Banner Name", colnames(dt))+1):(grep("Period 1 - ", colnames(dt))-1)
   } else{
     data_columns_wanted <- (grep("Banner Name", colnames(dt))+1)
@@ -154,11 +154,19 @@ TFmakeCharts <- function(input_TF_make_charts){
   ###
 
 
-  # write.table(dt_write_excel, file=paste0('tf 2021-10-28.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+  # write.table(dt_write_excel, file=paste0('dt_write_excel 2021-12-15.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   # Convert tag order column back to numeric if it has been converted to factor
   dt_write_excel$`Banner Tag Order` <- as.numeric(dt_write_excel$`Banner Tag Order`)
   dt_write_excel$`Stem Tag Order` <- as.numeric(dt_write_excel$`Stem Tag Order`)
+
+  # Need to deal with the weighting scheme being appended to the references more sensibly, but for now stripping them off
+  dt_write_excel$`Unique Row ID` <- gsub(';us_adults', '', dt_write_excel$`Unique Row ID`)
+  dt_write_excel$`Unique Crosstab ID` <- gsub(';us_adults', '', dt_write_excel$`Unique Crosstab ID`)
+  chart_references <- gsub(';us_adults', '', chart_references)
+  # write.table(dt_write_excel, file=paste0('~/TrendFinder/Outputs/2021-12-10/dt_write_excel 2021-12-10.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+  # cat(paste0('"', paste(chart_references, collapse='", "'), '"'))
+  # cat(paste0('"', paste(data_colnames_wanted, collapse='", "'), '"'))
 
 
   pandas_df <- r_to_py(dt_write_excel)
@@ -166,7 +174,6 @@ TFmakeCharts <- function(input_TF_make_charts){
   chart_references_py <- r_to_py(chart_references)
   file_name_py <- r_to_py(file_name)
 
-  write.table(dt_write_excel, file=paste0('~/TrendFinder/Outputs/2021-11-08/dt_write_excel 2021-11-08.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   source_python("~/TrendFinder/trendfinder/R/writeExcel.py")
 
