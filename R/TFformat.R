@@ -1,8 +1,7 @@
 TFformat <- function(inputFormat){
 
   # inputFormat <- TFwider(readRDS('~/TrendFinder/Outputs/2021-11-22/Output Results - Batch Time 2021-11-22 20:02:15 EST.rds'))
-  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-02/All Results - Batch Time 2021-12-02 11_24_07 EST EDT.rds') %>%
-    # TFwider()
+  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-17/All Results - Batch Time 2021-12-17 10_56_54 EST EDT.rds') %>% TFwider()
 
   # inputFormat <- outputWider
 

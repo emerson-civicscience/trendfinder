@@ -61,6 +61,7 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 	answer_grouping_table_stem$`Banner Answer Group Label` <- NA
 	colnames(answer_grouping_table_stem)[which(colnames(answer_grouping_table_stem) == "banner")] <- 'Banner Answer ID'
 	answer_grouping_table_stem$`Banner Answer Label` <- NA
+	answer_grouping_table_stem$`bannerQ` <- NA
 
 	### answer_grouping_table
 	answer_grouping_table <- left_join(answer_groupings, answer_grouping_table_banner[, -which(colnames(answer_grouping_table_banner) %in% c('banner', 'Answer Group Label', 'Answer ID'))], by = c("Answer ID" = "stem"))
@@ -91,6 +92,7 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 	answer_grouping_table_banner$`Stem Answer Group Label` <- NA
 	colnames(answer_grouping_table_banner)[which(colnames(answer_grouping_table_banner) == "stem")] <- 'Stem Answer ID'
 	answer_grouping_table_banner$`Stem Answer Label` <- NA
+	answer_grouping_table_banner$`stemQ` <- NA
 
 	answer_grouping_table <- answer_grouping_table[, -which(colnames(answer_grouping_table) == 'Answer ID')]
 	answer_grouping_table <- answer_grouping_table[, -grep('^Answer Group Label', colnames(answer_grouping_table))]
@@ -114,7 +116,7 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 	outputAnswerGroupingResponses <- outputAnswerGrouping[, grep(RCsuffix, colnames(outputAnswerGrouping))]
 
 	if(numberOfPeriods == 1){
-		if(is.na(unique(outputAnswerGroupingResponses))){
+		if(is.na(unique(outputAnswerGroupingResponses))[1]){
 			dataRows <- NULL
 		}
 	} else{
@@ -124,7 +126,7 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 	}
 
 	if(length(dataRows) > 0){
-		outputAnswerGrouping <- outputAnswerGrouping[dataRows,]
+		d <- outputAnswerGrouping[dataRows,]
 	} else{
 		outputAnswerGrouping <- NULL
 	}
