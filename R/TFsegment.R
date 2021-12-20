@@ -1,4 +1,4 @@
-TFsegment <- function(segmentCondition, weighting_dict){
+TFsegment <- function(segmentCondition, weightingDictSegments){
 
 	bannerQuestion <- segmentCondition[1] %>%
 		as.numeric()
@@ -18,7 +18,7 @@ TFsegment <- function(segmentCondition, weighting_dict){
 	scheme_name <- segmentCondition[3] %>%
 		as.character()
 
-	weights <- weighting_dict[which(weighting_dict$weighting_scheme == scheme_name),2][[1]][[1]]
+	weights <- weightingDictSegments[which(weightingDictSegments$weighting_scheme == scheme_name),2][[1]][[1]]
 
 	segmentResults <- lapply(segmentPrecondition, questionTable,
 													 questionID = bannerQuestion,
