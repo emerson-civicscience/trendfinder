@@ -38,12 +38,10 @@ TFwider <- function(inputWider){
   inputWiderSubset$banner <- as.character(inputWiderSubset$banner)
   inputWiderSubset$weights <- as.character(inputWiderSubset$weighting_scheme)
 
-  # At the moment, dataKey has groupings in `Answer ID` and `Question ID`.
-  # If grep returns zero rows and you remove by it (minus sign out front) it will return an empty table
-  # For now, there is a row with just commas and `Question Text` 'Placeholder for grep' just in case I remove all of them and forget
-  dataKeySubset <- dataKey[-grep(',', dataKey$`Answer ID`), ]
-  dataKeySubset <- dataKeySubset[-grep(',', dataKeySubset$`Question ID`), ]
-  dataKeySubset <- dataKeySubset[, c('Answer ID', 'Question ID')]
+  # dataKey used to have groupings in `Answer ID` and `Question ID`
+  # dataKeySubset <- dataKey[-grep(',', dataKey$`Answer ID`), ]
+  # dataKeySubset <- dataKeySubset[-grep(',', dataKeySubset$`Question ID`), ]
+  dataKeySubset <- dataKey[, c('Answer ID', 'Question ID')]
   dataKeySubset <- dataKeySubset[!duplicated(dataKeySubset), ]
 
   inputWiderSubset <- left_join(inputWiderSubset, dataKeySubset, by = c('stem' = 'Answer ID'))
