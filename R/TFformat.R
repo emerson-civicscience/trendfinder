@@ -1,8 +1,7 @@
 TFformat <- function(inputFormat){
 
   # inputFormat <- TFwider(readRDS('~/TrendFinder/Outputs/2021-11-22/Output Results - Batch Time 2021-11-22 20:02:15 EST.rds'))
-  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-02/All Results - Batch Time 2021-12-02 11_24_07 EST EDT.rds') %>%
-    # TFwider()
+  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-17/All Results - Batch Time 2021-12-17 10_56_54 EST EDT.rds') %>% TFwider() %>% .[which(!is.na(.$bannerQ)), ] %>% .[which(!is.na(.$banner)), ]
 
   # inputFormat <- outputWider
 
@@ -18,32 +17,63 @@ TFformat <- function(inputFormat){
   }
   numberOfPeriods <- length(time_period)
 
-  outputFormatted <- inputFormat
-  # outputFormatted$`Stem Answer Group ID` <- NA
-  outputFormatted$`Stem Answer Group Label` <- NA
-  # outputFormatted$`Stem Answer Label` <- NA
-  # outputFormatted$`Banner Answer Group ID` <- NA
-  outputFormatted$`Banner Answer Group Label` <- NA
-  # outputFormatted$`Banner Answer Label` <- NA
+  # TFanswerGroupingRefs takes the answer_groupings table and concatenates answer groups into single rows based on comma-separated answer choice IDs
+  unique_answer_groupings <- TFanswerGroupingRefs()
+
+
 
   answer_grouping_table <- TFanswerGroupingHandler(inputFormat,
                                                    RCsuffix = RCsuffix,
-                                                   numberOfPeriods = numberOfPeriods)
+                                                   numberOfPeriods = numberOfPeriods,
+                                                   unique_answer_groupings = unique_answer_groupings)
 
-  outputFormatted <- rbind(outputFormatted, answer_grouping_table[, colnames(outputFormatted)])
+  answer_groupings_and_dataKey <- left_join(answer_groupings, dataKey, by = "Answer ID")
 
-  # groupsWanted <- c(10857, 11405, 11238, 11246, 15222, 10769)
-  # stemGroups <- which(outputFormatted$`Stem Answer Group ID` %in% groupsWanted)
-  # bannerGroups <- which(outputFormatted$`Banner Answer Group ID` %in% groupsWanted)
-  # groups <- unique(c(stemGroups, bannerGroups))
-  # outputFormatted <- outputFormatted[groups, ]
+  answer_groupings_and_dataKey$`Answer Text` <- answer_groupings_and_dataKey$`Answer Label`
+  answer_groupings_and_dataKey$`Question Text` <- paste0(answer_groupings_and_dataKey$`Question Text`, " - ", answer_groupings_and_dataKey$`Answer Group Label`)
+  answer_groupings_and_dataKey$`Group ID` <- answer_groupings_and_dataKey$`Answer Group ID`
+  answer_groupings_and_dataKey <- answer_groupings_and_dataKey[, -which(colnames(answer_groupings_and_dataKey) %in% c("Answer Group ID", "Answer Group Label", "Answer Label"))]
+
+  answer_groupings_and_dataKey <- left_join(answer_groupings_and_dataKey, unique_answer_groupings[, c("Answer ID", "Answer Group ID", "Answer Label")], by = c("Group ID" = "Answer Group ID", "Answer Text" = "Answer Label"))
+  answer_groupings_and_dataKey$`Answer ID.x` <- answer_groupings_and_dataKey$`Answer ID.y`
+  answer_groupings_and_dataKey <- answer_groupings_and_dataKey[, -which(colnames(answer_groupings_and_dataKey) == "Answer ID.y")]
+  colnames(answer_groupings_and_dataKey) <- gsub("Answer ID.x", "Answer ID", colnames(answer_groupings_and_dataKey))
+
+  answer_groupings_and_dataKey$Tag <- NA
+  answer_groupings_and_dataKey$`Tag Order` <- NA
+  answer_groupings_and_dataKey$Label <- NA
+
+  answer_flag_aggregates <- aggregate(. ~`Answer ID`,
+                                      answer_groupings_and_dataKey[, c('Answer ID', 'Answer Flag')], sum)
+
+  answer_groupings_and_dataKey <- left_join(answer_groupings_and_dataKey[, -which(colnames(answer_groupings_and_dataKey) == "Answer Flag")], answer_flag_aggregates, by = "Answer ID") %>%
+    .[!duplicated(.), ]
+
+
+  answer_groupings_and_dataKey$`Answer Flag`[which(answer_groupings_and_dataKey$`Answer Flag` > 1)] <- 1
+
+  dataKey <- rbind(answer_groupings_and_dataKey, dataKey)
+
+
+
+  outputFormatted <- inputFormat
+  colnames(outputFormatted)[which(colnames(outputFormatted) == 'stem')] <- 'Stem Answer ID'
+  outputFormatted$`Stem Answer Group ID` <- NA
+  outputFormatted$`Stem Answer Group Label` <- NA
+  outputFormatted$`Stem Answer Label` <- NA
+  colnames(outputFormatted)[which(colnames(outputFormatted) == 'banner')] <- 'Banner Answer ID'
+  outputFormatted$`Banner Answer Group ID` <- NA
+  outputFormatted$`Banner Answer Group Label` <- NA
+  outputFormatted$`Banner Answer Label` <- NA
+
+  outputFormatted <- rbind(outputFormatted, answer_grouping_table)
+
 
   outputFormatted$weighting_stem_bannerQ_and_answer_groups <- paste(outputFormatted$weighting_scheme,
-                                                                    outputFormatted$stem,
+                                                                    outputFormatted$`Stem Answer ID`,
+                                                                    outputFormatted$`Stem Answer Group ID`,
                                                                     outputFormatted$bannerQ,
-                                                                    # These come from TFanswerGroupingHandler pre-concatenated now
-                                                                    # outputFormatted$`Stem Answer Group ID`,
-                                                                    # outputFormatted$`Banner Answer Group ID`,
+                                                                    outputFormatted$`Banner Answer Group ID`,
                                                                     sep=";")
 
 
@@ -52,6 +82,12 @@ TFformat <- function(inputFormat){
   responseCols <- colnames(outputFormatted)[responseColNumbers]
   totalCols <- gsub(RCsuffix, TRsuffix, responseCols)
 
+  outputFormatted$unique <- paste(outputFormatted$weighting_scheme,
+                                  outputFormatted$`Stem Answer ID`,
+                                  outputFormatted$`Stem Answer Group ID`,
+                                  outputFormatted$`Banner Answer ID`,
+                                  outputFormatted$`Banner Answer Group ID`,
+                                  sep=";")
 
   response_aggregates <- aggregate(. ~unique,
                                    outputFormatted[, c('unique', responseCols)], sum)
@@ -79,7 +115,8 @@ TFformat <- function(inputFormat){
                                total_aggregates,
                                by = 'weighting_stem_bannerQ_and_answer_groups')
 
-  outputFormatted <- outputFormatted[, -which(colnames(outputFormatted) == "weighting_stem_bannerQ_and_answer_groups")]
+  # outputFormatted <- outputFormatted[, -which(colnames(outputFormatted) == "weighting_stem_bannerQ_and_answer_groups")]
+  # outputFormatted <- outputFormatted[, -which(colnames(outputFormatted) == "unique")]
   outputFormatted <- outputFormatted[!duplicated(outputFormatted$unique), ]
 
 
@@ -123,10 +160,10 @@ TFformat <- function(inputFormat){
 
   }
 
-  dataKeySubset <- dataKey[, c('Answer ID', 'Weighting Scheme', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')]
 
-  outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('stem' = 'Answer ID',
-                                                                       'weighting_scheme' = 'Weighting Scheme'))
+  dataKeySubset <- dataKey[, c('Answer ID', 'Group ID', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')]
+
+  outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('Stem Answer ID' = 'Answer ID', 'Stem Answer Group ID' = 'Group ID'))
 
   colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("Answer Text",
                                                                    "Answer Flag",
@@ -139,10 +176,7 @@ TFformat <- function(inputFormat){
                                                                                      "Stem Q Account ID")
 
 
-
-
-  outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('banner' = 'Answer ID',
-                                                                       'weighting_scheme' = 'Weighting Scheme'))
+  outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('Banner Answer ID' = 'Answer ID', 'Banner Answer Group ID' = 'Group ID'))
 
   colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("Answer Text",
                                                                    "Answer Flag",
@@ -154,18 +188,12 @@ TFformat <- function(inputFormat){
                                                                                      "Banner Client Q Flag",
                                                                                      "Banner Q Account ID")
 
-  colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("unique", "weighting_scheme",
-                                                                   "stem",
-                                                                   "banner",
-                                                                   "uniqueCrosstab",
+  colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("weighting_scheme",
                                                                    "stemQ",
-                                                                   "bannerQ"))] <- c("Unique Row ID",
-                                                                                     "Weights",
-                                                                                     "Stem ID (answers)",
-                                                                                     "Banner ID (answers)",
-                                                                                     "Unique Crosstab ID",
+                                                                   "bannerQ"))] <- c("Weighting Scheme",
                                                                                      "Stem QID",
                                                                                      "Banner QID")
+
 
   outputFormatted$`Answer Flag` <- as.numeric(outputFormatted$`Stem Answer Flag`) + as.numeric(outputFormatted$`Banner Answer Flag`)
 
@@ -173,29 +201,14 @@ TFformat <- function(inputFormat){
   outputFormatted$`Chart` <- NA
   outputFormatted$`Manual Flag` <- NA
 
-  # baseCols <- c("Unique Row ID", "Weights", "Unique Crosstab ID",
-  #               "Stem Client Q Flag", "Stem Q Account ID",
-  #               "Banner Client Q Flag", "Banner Q Account ID",
-  #               "Answer Flag", "Stats Flag", "Chart",  "Manual Flag",
-  #               "Stem QID", "Stem Answer Group ID", "Stem Answer Group Label", "Stem QText", "Stem ID (answers)", "Stem Name",
-  #               "Banner QID", "Banner Answer Group ID", "Banner Answer Group Label", "Banner QText", "Banner ID (answers)", "Banner Name")
+  colnames(outputFormatted)[grep('Answer Group ID', colnames(outputFormatted))] <- gsub('Answer ', '', colnames(outputFormatted)[grep('Answer Group ID', colnames(outputFormatted))])
 
-  stem_group_rows <- which(!is.na(outputFormatted$`Stem Answer Group Label`))
-  outputFormatted$`Stem QText`[stem_group_rows] <- paste0(outputFormatted$`Stem QText`[stem_group_rows],
-                                                          " - ",
-                                                          outputFormatted$`Stem Answer Group Label`[stem_group_rows])
-
-  banner_group_rows <- which(!is.na(outputFormatted$`Banner Answer Group Label`))
-  outputFormatted$`Banner QText`[banner_group_rows] <- paste0(outputFormatted$`Banner QText`[banner_group_rows],
-                                                          " - ",
-                                                          outputFormatted$`Banner Answer Group Label`[banner_group_rows])
-
-  baseCols <- c("Unique Row ID", "Weights", "Unique Crosstab ID",
+  baseCols <- c("Weighting Scheme",
                 "Stem Client Q Flag", "Stem Q Account ID",
                 "Banner Client Q Flag", "Banner Q Account ID",
                 "Answer Flag", "Stats Flag", "Chart",  "Manual Flag",
-                "Stem QID", "Stem QText", "Stem ID (answers)", "Stem Name",
-                "Banner QID", "Banner QText", "Banner ID (answers)", "Banner Name")
+                "Stem QID", "Stem Group ID", "Stem QText", "Stem Answer ID", "Stem Name",
+                "Banner QID", "Banner Group ID","Banner QText", "Banner Answer ID", "Banner Name")
 
   outputFormatted <- outputFormatted[, c(baseCols, time_period, percentDiffCols, responseCols, totalCols)]
 
@@ -210,7 +223,7 @@ TFformat <- function(inputFormat){
     utf8_normalize(., map_quote = TRUE)
 
 
-  outputFormatted <- outputFormatted[!duplicated(outputFormatted[, c('Unique Row ID')]),]
+  outputFormatted <- outputFormatted[!duplicated(outputFormatted), ] # Just in case
 
   outputFormattedName <- outputName("Output - Responses - Formatted", batch_time = batch_time)
   saveRDS(outputFormatted, file = outputFormattedName)
