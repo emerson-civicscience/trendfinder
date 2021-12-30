@@ -8,7 +8,9 @@ TFcrosstab <- function(crosstabCondition,
   # Initially wanted the ability to put answer group names into the API, but since answer groupings
   # are now handled ad hoc after computation of ungrouped results, they are only needed for error handling
   # (can (and probably should) be moved to crosstabTable()).
-  stemIDs <- cs_get_question_metadata(stemQuestion)$data %>%
+  stemIDs <- cs_get_question_metadata(stemQuestion,
+                                      access.key = CS_ACCESS_KEY,
+                                      secret.key = CS_SECRET_KEY)$data %>%
     rownames(.) %>%
     as.numeric(.) %>%
     as.list(.)
