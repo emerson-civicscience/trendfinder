@@ -1,7 +1,6 @@
 TFformat <- function(inputFormat){
 
-  # inputFormat <- TFwider(readRDS('~/TrendFinder/Outputs/2021-11-22/Output Results - Batch Time 2021-11-22 20:02:15 EST.rds'))
-  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-17/All Results - Batch Time 2021-12-17 10_56_54 EST EDT.rds') %>% TFwider() %>% .[which(!is.na(.$bannerQ)), ] %>% .[which(!is.na(.$banner)), ]
+  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-27/inputFormat.rds')
 
   # inputFormat <- outputWider
 
@@ -52,7 +51,7 @@ TFformat <- function(inputFormat){
 
   answer_groupings_and_dataKey$`Answer Flag`[which(answer_groupings_and_dataKey$`Answer Flag` > 1)] <- 1
 
-  dataKey <- rbind(answer_groupings_and_dataKey, dataKey)
+  answer_groupings_and_dataKey <- rbind(answer_groupings_and_dataKey, dataKey)
 
 
 
@@ -161,9 +160,9 @@ TFformat <- function(inputFormat){
   }
 
 
-  dataKeySubset <- dataKey[, c('Answer ID', 'Group ID', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')]
+  answer_groupings_and_dataKey_subset <- answer_groupings_and_dataKey[, c('Answer ID', 'Group ID', 'Answer Text', 'Answer Flag', 'Question Text', 'Sponsored', 'Account')]
 
-  outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('Stem Answer ID' = 'Answer ID', 'Stem Answer Group ID' = 'Group ID'))
+  outputFormatted <- left_join(outputFormatted, answer_groupings_and_dataKey_subset, by = c('Stem Answer ID' = 'Answer ID', 'Stem Answer Group ID' = 'Group ID'))
 
   colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("Answer Text",
                                                                    "Answer Flag",
@@ -176,7 +175,7 @@ TFformat <- function(inputFormat){
                                                                                      "Stem Q Account ID")
 
 
-  outputFormatted <- left_join(outputFormatted, dataKeySubset, by = c('Banner Answer ID' = 'Answer ID', 'Banner Answer Group ID' = 'Group ID'))
+  outputFormatted <- left_join(outputFormatted, answer_groupings_and_dataKey_subset, by = c('Banner Answer ID' = 'Answer ID', 'Banner Answer Group ID' = 'Group ID'))
 
   colnames(outputFormatted)[which(colnames(outputFormatted) %in% c("Answer Text",
                                                                    "Answer Flag",
