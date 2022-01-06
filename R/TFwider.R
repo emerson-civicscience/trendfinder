@@ -1,5 +1,5 @@
 TFwider <- function(inputWider){
-  # inputWider <- allResults
+  # inputWider <- all_results
   # inputWider <- readRDS('~/TrendFinder/Outputs/2021-12-17/All Results - Batch Time 2021-12-17 10_56_54 EST - groups removed.rds')
 
 
@@ -26,7 +26,7 @@ TFwider <- function(inputWider){
 
   inputColNames <- names(inputWiderSubset)
 
-  inputDataColNames <- inputColNames[4:length(inputWiderSubset)] %>%
+  inputDataColNames <- inputColNames[(number_of_ID_columns+1):ncol(inputWiderSubset)] %>%
     gsub("_", " - ", .) %>%
     paste0(., ' - response count')
 

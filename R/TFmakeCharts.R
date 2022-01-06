@@ -1,49 +1,47 @@
-TFmakeCharts <- function(input_TFmakeCharts){
+TFmakeCharts <- function(input_TFmakeCharts, use_tags = NULL){
 
   # input_TFmakeCharts <- outputFormatted
 
-	tag_table_stem <- left_join(input_TFmakeCharts, tag_table, by = c("Stem Answer ID" = "Answer ID")) %>%
-		.[which(!is.na(.$Tag)), ]
-	tag_table_stem$`Stem QID` <- tag_table_stem$Tag
-	tag_table_stem$`Stem Group ID` <- NA
-	tag_table_stem$`Stem QText` <- tag_table_stem$Tag
-	tag_table_stem$`Stem Answer ID` <- tag_table_stem$`Tag Order`
-	tag_table_stem$`Stem Name` <- tag_table_stem$`Tag Label`
-	tags_wanted_stem <- unique(tag_table_stem$Tag[which(tag_table_stem$Chart == 1)])
-	tag_table_stem <- tag_table_stem[which(tag_table_stem$Tag %in% tags_wanted_stem), ]
+	input_TFmakeCharts$Chart[is.na(input_TFmakeCharts$Chart)] <- 0
+	input_TFmakeCharts <- input_TFmakeCharts[!duplicated(input_TFmakeCharts), ]
+	# input_TFmakeCharts <- input_TFmakeCharts[-which(input_TFmakeCharts$`Stem QID` == input_TFmakeCharts$`Banner QID`), ]
+	columns_wanted <- colnames(input_TFmakeCharts)
 
-	setorder(tag_table_stem, 'Stem QID', 'Stem Answer ID')
+	if(is.null(use_tags)){
+		dt <- left_join(input_TFmakeCharts, tag_table, by = c("Stem Answer ID" = "Answer ID"))
+		colnames(dt) <- gsub("Tag", "Stem Tag", colnames(dt))
+		dt <- left_join(dt, tag_table, by = c("Banner Answer ID" = "Answer ID"))
+		colnames(dt) <- gsub("^Tag", "Banner Tag", colnames(dt))
 
-	tag_table_banner <- left_join(input_TFmakeCharts, tag_table, by = c("Banner Answer ID" = "Answer ID")) %>%
-		.[which(!is.na(.$Tag)), ]
-	tag_table_banner$`Banner QID` <- tag_table_banner$Tag
-	tag_table_banner$`Banner Group ID` <- NA
-	tag_table_banner$`Banner QText` <- tag_table_banner$Tag
-	tag_table_banner$`Banner Answer ID` <- tag_table_banner$`Tag Order`
-	tag_table_banner$`Banner Name` <- tag_table_banner$`Tag Label`
-	tags_wanted_banner <- unique(tag_table_banner$Tag[which(tag_table_stem$Chart == 1)])
-	tag_table_banner <- tag_table_banner[which(tag_table_banner$Tag %in% tags_wanted_banner), ]
+		dt$`Stem QID`[which(!is.na(dt$`Stem Tag`))] <- dt$`Stem Tag`[which(!is.na(dt$`Stem Tag`))]
+		dt$`Stem Group ID`[which(!is.na(dt$`Stem Tag`))] <- 0
+		dt$`Stem QText`[which(!is.na(dt$`Stem Tag`))] <- dt$`Stem Tag`[which(!is.na(dt$`Stem Tag`))]
+		dt$`Stem Name`[which(!is.na(dt$`Stem Tag`))] <- dt$`Stem Tag Label`[which(!is.na(dt$`Stem Tag`))]
+		dt$`Banner QID`[which(!is.na(dt$`Banner Tag`))] <- dt$`Banner Tag`[which(!is.na(dt$`Banner Tag`))]
+		dt$`Banner Group ID`[which(!is.na(dt$`Banner Tag`))] <- 0
+		dt$`Banner QText`[which(!is.na(dt$`Banner Tag`))] <- dt$`Banner Tag`[which(!is.na(dt$`Banner Tag`))]
+		dt$`Banner Name`[which(!is.na(dt$`Banner Tag`))] <- dt$`Banner Tag Label`[which(!is.na(dt$`Banner Tag`))]
 
-	setorder(tag_table_banner, 'Banner QID', 'Banner Answer ID')
+		dt <- setorder(dt,
+									 'Stem Group ID', 'Stem QID', 'Stem Tag Order',
+									 'Banner QID', 'Banner Group ID','Banner Tag Order') %>%
+			.[, columns_wanted] %>%
+			.[!duplicated(.), ]
 
-	tag_table_both <- tag_table_stem[, -grep('Tag', colnames(tag_table_stem))]
-	tag_table_both <- left_join(tag_table_both, tag_table, by = c("Banner Answer ID" = "Answer ID")) %>%
-	.[which(!is.na(.$Tag)), ]
-	tag_table_both$`Banner QID` <- tag_table_both$Tag
-	tag_table_both$`Banner Group ID` <- NA
-	tag_table_both$`Banner QText` <- tag_table_both$Tag
-	tag_table_both$`Banner Answer ID` <- tag_table_both$`Tag Order`
-	tag_table_both$`Banner Name` <- tag_table_both$`Tag Label`
-	tag_table_both <- tag_table_both[which(tag_table_both$Tag %in% tags_wanted_banner), ]
+		input_no_charts <- input_TFmakeCharts
+		input_no_charts$Chart <- 0
 
-	setorder(tag_table_both, 'Banner QID', 'Banner Answer ID')
+		dt <- rbind(dt, input_no_charts)
+		dt <- unique(dt, by = c("Weighting Scheme", "Stem Answer ID", "Stem Group ID", "Banner Answer ID", "Banner Group ID"))
 
-	tag_table_combined <- rbind(tag_table_stem, tag_table_banner, tag_table_both) %>%
-		.[ , -grep('Tag', colnames(.))]
 
-	tag_table_combined$Chart <- 1
+	} else{
+		dt <- input_TFmakeCharts
+		}
 
-	dt <- rbind(input_TFmakeCharts, tag_table_combined)
+
+
+
 
 	ref_table <- dt[which(dt$Chart == 1), c("Stem QID", "Stem Group ID", "Banner QID", "Banner Group ID")] %>%
 		.[!duplicated(.), ]
@@ -66,8 +64,8 @@ TFmakeCharts <- function(input_TFmakeCharts){
   chart_references_py <- r_to_py(ref_table)
   file_name_py <- r_to_py(file_name)
 
-  # write.table(dt, file=paste0('~/TrendFinder/Outputs/2021-12-28/dt 2021-12-28.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
-  # write.table(ref_table, file=paste0('~/TrendFinder/Outputs/2021-12-28/ref_table 2021-12-28.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+  # write.table(dt, file=paste0('~/TrendFinder/Outputs/2022-01-05/dt 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+  # write.table(ref_table, file=paste0('~/TrendFinder/Outputs/2022-01-05/ref_table 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   source_python("~/TrendFinder/trendfinder/R/writeExcel.py")
 
