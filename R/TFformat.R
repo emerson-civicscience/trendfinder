@@ -1,4 +1,4 @@
-TFformat <- function(inputFormat){
+TFformat <- function(inputFormat, time_period = NULL){
 
   # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-27/inputFormat.rds')
 

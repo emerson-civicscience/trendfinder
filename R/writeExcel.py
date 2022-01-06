@@ -4,7 +4,7 @@
 # data_colnames_wanted_py = r.data_colnames_wanted_py
 # chart_references_py = r.chart_references_py
 # file_name_py = r.file_name_py
-# Test
+# pd.set_option("display.max_rows", None, "display.max_columns", None)
 
 import pandas as pd
 import numpy as np
@@ -13,13 +13,13 @@ import datetime
 import operator
 
 def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_name_py): # Defines function
-
+		
 		pandas_df['Stem Group ID'] = pandas_df['Stem Group ID'].fillna(0)
 		pandas_df['Banner Group ID'] = pandas_df['Banner Group ID'].fillna(0)
-	
+		
 		chart_references_py['Stem Group ID'] = chart_references_py['Stem Group ID'].fillna(0).astype(int)
 		chart_references_py['Banner Group ID'] = chart_references_py['Banner Group ID'].fillna(0)
-	
+		
 		first_table_row = 0
 		first_data_row = first_table_row + 3 # May need adjusted depending on where you insert table into Excel
 		first_table_col = 4
@@ -40,11 +40,11 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		stem_qtext_location = 'D3'
 		
 		def makeChart(#crosstab_loop,
-              #chart_number,
-              chart_title_formula,
-              series,
-              category_name_row):
-    
+		          #chart_number,
+		          chart_title_formula,
+		          series,
+		          category_name_row):
+		
 		    add_list = [first_data_col] * len(series)
 		    series = list(map(operator.add, series, add_list))
 		    series = list(map(xw.utility.xl_col_to_name, series))
@@ -101,40 +101,37 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		
 		    worksheet.insert_chart(chart_row, chart_col, chart_dict[chart_name])
 		    worksheet.set_zoom(70)
-		        
-		
-		
-		# In[8]:
 		
 		
 		sheet_number = 0
 		
 		# Uses the rows of chart_references_py (table passed from R) to iterate through
 		for indices, row in chart_references_py.iterrows():   
-    
+		
 		    stem_q = row[0]
 		    stem_group = row[1]
 		    banner_q = row[2]
 		    banner_group = row[3]
 		    
-		    stem_df = pandas_df[pandas_df["Stem QID"] == "0"]
+		    stem_df = pandas_df[pandas_df["Stem QText"] == "Topline"]
 		    stem_df = stem_df[stem_df["Banner QID"] == stem_q]
 		    stem_df = stem_df[stem_df["Banner Group ID"] == stem_group]
 		    # Since the code handles topline results (which don't have a "stem" question), this 
 		    # skips finding the question text for the stem
 		    # Assign "Stem" to 'Stem QID'to parse the series info for the makeChart function
 		    if stem_df.shape[0] != 0:
-		        stem_df = stem_df.reset_index(drop=True, inplace=False)
-		        stem_df['Stem QID'] = "Stem"        
+		    		stem_df = stem_df.reset_index(drop=True, inplace=False)
+		    		stem_df['Stem QID'] = "Stem"        
 		    
-		    banner_df = pandas_df[pandas_df["Stem QID"] == "0"]
+		    banner_df = pandas_df[pandas_df["Stem QText"] == "Topline"]
 		    banner_df = banner_df[banner_df["Banner QID"] == banner_q]
 		    banner_df = banner_df[banner_df["Banner Group ID"] == banner_group]
-		    banner_df = banner_df.reset_index(drop=True, inplace=False)
-		    banner_qtext = banner_df["Banner QText"].loc[0]
-		    # Assign "Banner" to 'Stem QID'to parse the series info for the makeChart function
-		    banner_df['Stem QID'] = "Banner"
-		    first_banner_answer = banner_df['Banner Answer ID'].loc[0]
+		    if banner_df.shape[0] != 0:
+		    		banner_df = banner_df.reset_index(drop=True, inplace=False)
+		    		
+		    		# Assign "Banner" to 'Stem QID'to parse the series info for the makeChart function
+		    		banner_df['Stem QID'] = "Banner"
+		    		
 		    
 		    crosstab_df = pandas_df[pandas_df["Stem QID"] == stem_q]
 		    crosstab_df = crosstab_df[crosstab_df["Stem Group ID"] == stem_group]
@@ -142,7 +139,9 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		    crosstab_df = crosstab_df[crosstab_df["Banner Group ID"] == banner_group]
 		    
 		    stem_qtext = crosstab_df['Stem QText'].iloc[0]
+		    banner_qtext = crosstab_df["Banner QText"].iloc[0]
 		    first_stem_answer = crosstab_df['Stem Answer ID'].iloc[0]
+		    first_banner_answer = crosstab_df['Banner Answer ID'].iloc[0]
 		    
 		    combined_df = pd.concat([stem_df, banner_df, crosstab_df])
 		    
@@ -156,12 +155,13 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		    
 		    topline_1_series = combined_df_excel.index[combined_df_excel['Stem QID'] == 'Banner'].tolist()
 		    topline_2_series = combined_df_excel.index[combined_df_excel['Stem QID'] == 'Stem'].tolist()
+		    
 		    crosstab_ref_rows = combined_df_excel.index[~combined_df_excel.index.isin(topline_1_series + topline_2_series)].tolist()
 		    
 		    crosstab_subset = combined_df_excel.loc[crosstab_ref_rows, ]
 		    
 		    # Note: this is a somewhat convoluted method to keep the row order the same as it started
-		    # np.unique() might work? 
+		    # np.unique() might work
 		    banner_answers = crosstab_subset[crosstab_subset['Stem Answer ID'] == first_stem_answer]['Banner Answer ID'].tolist()
 		    stem_answers = crosstab_subset[crosstab_subset['Banner Answer ID'] == first_banner_answer]['Stem Answer ID'].tolist()
 		    
@@ -174,9 +174,9 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		    sheet_number += 1 
 		    
 		    if stem_q == 0:
-		        stem_q_text = ''
+		    		stem_q_text = ''
 		    else:
-		        stem_q_text = str(stem_q)+';'
+		    		stem_q_text = str(stem_q)+';'
 		        
 		    sheet_number_text = str(sheet_number)
 		

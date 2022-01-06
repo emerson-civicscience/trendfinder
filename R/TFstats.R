@@ -1,216 +1,165 @@
-TFstats <- function(inputStats, cutoff_stats_flags){
-  # inputStats <- outputFormatted
+TFstats <- function(input_stats, cutoff_stats_flags, max_chart_return, max_chart_iterate, number_of_unique_topline_charts = 1000, number_of_unique_seg_and_crosstab_charts = 1000){
+  # input_stats <- outputFormatted
 
-  ### Preliminary estimate is TFstats can do 35,000 topline results and 4200 segment/cross results per hour
+  input_stats$`Stem Group ID`[which(is.na(input_stats$`Stem Group ID`))] <- 0
+  input_stats$`Banner Group ID`[which(is.na(input_stats$`Banner Group ID`))] <- 0
 
-  uniqueBannerQlist <- unique(inputStats$`Banner QID`)
+  input_cols <- colnames(input_stats)
 
-  baseColsEnd <- grep("Banner Name", colnames(inputStats))
-  first_data_column <- baseColsEnd + 1
+  id_colnames <- c("Weighting Scheme", "Stem Answer ID", "Stem Group ID", "Banner Answer ID", "Banner Group ID")
+  unique_input_rows <- input_stats[, id_colnames] %>% transpose() %>% as.list()
 
-  all_period_columns <- grep("Period", colnames(inputStats))
-  first_period_column <- all_period_columns[1]
+  id_cols <- which(input_cols %in% id_colnames)
+  response_cols <- c(grep('response count', input_cols))
+  total_cols <- c(grep('total responses', input_cols))
 
-  last_period_column <- all_period_columns[length(all_period_columns)]
 
-  all_response_count_columns <- grep("- response", colnames(inputStats))
-  first_response_count_column <- all_response_count_columns[1]
-  last_response_count_column <- all_response_count_columns[length(all_response_count_columns)]
+  df_response <- input_stats[, c(id_cols, response_cols)]
+  colnames(df_response) <- gsub(' - response count', '', colnames(df_response))
 
-  first_total_response_count_column <- last_response_count_column
-  last_total_response_count_column <- ncol(inputStats)
+  df_total <- input_stats[, c(id_cols, total_cols)]
+  colnames(df_total) <- gsub(' - total responses', '', colnames(df_total))
 
-  if(is.na(first_period_column)){
-    dataColsEnd <- all_response_count_columns[1] - 1
+  names_to_def <- c("start_date", "end_date")
+
+  df_response_longer <- pivot_longer(df_response, cols = contains(" - "),
+                                     names_to = names_to_def,
+                                     names_sep = " - ",
+                                     values_to = "response count")
+
+  df_total_longer <- pivot_longer(df_total, cols = contains(" - "),
+                                  names_to = names_to_def,
+                                  names_sep = " - ",
+                                  values_to = "total responses")
+
+  df <- merge(df_response_longer, df_total_longer, by = c(id_colnames, names_to_def))
+
+  stems <-  df[, c('Weighting Scheme', 'Stem Answer ID', 'Stem Group ID')] %>%
+    .[!duplicated(.), ]
+  banners <-  df[, c('Weighting Scheme', 'Banner Answer ID', 'Banner Group ID')] %>%
+    .[!duplicated(.), ]
+  start_and_end_dates <- df[, c('start_date', 'end_date')] %>%
+    .[!duplicated(.), ] %>%
+    setorder(., -"start_date")
+
+  row.names(start_and_end_dates) <- NULL
+
+  number_of_time_periods <- nrow(start_and_end_dates)
+
+  if(number_of_time_periods < 2){
+    total_date_periods <- number_of_time_periods
+    total_seg_periods <- number_of_time_periods
+  } else {
+    total_date_periods <- 3
+    total_seg_periods <- 2
+  }
+
+  # Test the last period with (up to) the two periods directly before it for significance
+  if(total_date_periods > 1){
+    date_sig_table <- mclapply(unique_input_rows, TFdatePropTest,
+                               total_date_periods = total_date_periods,
+                               df = df,
+                               start_and_end_dates = start_and_end_dates,
+                               id_colnames = id_colnames,
+                               mc.cores = detectCores()) %>%
+      rbindlist()
   } else{
-    dataColsEnd <- first_period_column - 1
+    date_significance_table <- NULL
   }
 
-  numberOfPeriods <- dataColsEnd - baseColsEnd
+
+  unique_banners <- input_stats[, c("Weighting Scheme", "Banner Answer ID", "Banner Group ID")] %>%
+    .[!duplicated(.), ] %>%
+    transpose() %>%
+    as.list()
 
 
+  for(i in total_seg_periods:1){
 
-  sigColsTable <- matrix(0L, nrow=nrow(inputStats), ncol=(numberOfPeriods*2-1))
+    seg_sig_table_interim <- mclapply(unique_banners, TFsegPropTest,
+                                      start_date = start_and_end_dates$start_date[i],
+                                      end_date = start_and_end_dates$end_date[i],
+                                      id_colnames = id_colnames,
+                                      df = df,
+                                      mc.cores = detectCores()) %>%
+      rbindlist(., fill = TRUE)
 
-  # if(!is.na(first_period_column)){
-  #   dateSigColNames <- colnames(inputStats)[all_response_count_columns] %>%
-  #     gsub('response count', 'date significance', .)
-  # }
-  dateSigColNames <- colnames(inputStats)[all_response_count_columns[1:(length(all_response_count_columns) - 1)]] %>%
-    gsub('response count', 'date significance', .)
-  segSigColNames <- colnames(inputStats)[all_response_count_columns] %>%
-    gsub('response count', 'segment significance', .)
+    remove_date_columns <- -grep('date', colnames(seg_sig_table_interim))
+    remove_count_columns <- -grep('response', colnames(seg_sig_table_interim))
+    remove_columns <- c(remove_date_columns, remove_count_columns)
 
-  dateSigColsEnd <- ncol(inputStats)+length(dateSigColNames)
+    seg_sig_table_interim <- seg_sig_table_interim[, ..remove_columns]
 
-  outputStats <- cbind(inputStats, sigColsTable) %>%
-    as_tibble()
-
-
-  number_columns_outputStats <- ncol(outputStats)
-
-  dateSigCols <- (last_total_response_count_column + 1):dateSigColsEnd
-  segSigCols <- (dateSigColsEnd + 1):number_columns_outputStats
-
-  names(outputStats) <- c(colnames(inputStats), dateSigColNames, segSigColNames)
-
-  if(numberOfPeriods > 1){
-    for(dateSigLoop in 1:nrow(outputStats)){
-      for(dateLoop in 1:(numberOfPeriods-1)){
-
-        # dateLoop <- 1
-        againstCount <- as.numeric(outputStats[dateSigLoop, last_response_count_column])
-        toCount <- as.numeric(outputStats[dateSigLoop, first_response_count_column - 1 + dateLoop])
-        againstSize <- as.numeric(outputStats[dateSigLoop, last_total_response_count_column])
-        toSize <- as.numeric(outputStats[dateSigLoop, last_response_count_column + dateLoop])
-
-        ## Not sure why I commented out these if(is.na()) statements; leaving them here for now
-        # if(is.na(againstCount) == FALSE){
-        #   if(is.na(toCount) == FALSE){
-
-        if(againstCount > 0 && againstCount != againstSize){
-          if(toCount > 0 && toCount != toSize){
-
-            prop <- prop.test(c(againstCount,toCount), c(againstSize,toSize))
-
-            p_value <- prop$p.value
-
-            if (p_value <= .05){
-              # Report the value of the end time period subtracted from each time period
-              # e.g. if April has a higher proportion than March, March will have a negative value
-              # indicating it is smaller than the most recent time period
-              percent_difference <- (prop$estimate[1]-prop$estimate[2])/prop$estimate[2] %>%
-                as.numeric(.)
-              outputStats[dateSigLoop, (ncol(inputStats)+dateLoop)] <- percent_difference
-            }
-          }
-        }
-        #   }
-        # }
-      }
+    if(i == total_seg_periods){
+      seg_sig_table <- seg_sig_table_interim
+    } else{
+      seg_sig_table <- merge(seg_sig_table, seg_sig_table_interim, by = id_colnames)
     }
+
   }
 
+  output_stats <- left_join(input_stats, date_sig_table, by = id_colnames) %>%
+    left_join(., seg_sig_table, by = id_colnames)
 
-
-  for(segmentLoop in 1:length(uniqueBannerQlist)){
-
-    outputSubset <- subset(outputStats, outputStats$`Banner QID`==uniqueBannerQlist[segmentLoop])
-    outputSubsetTopline <- subset(outputSubset, outputSubset$`Stem ID (answers)`==0)
-    outputSubsetSegmentQuestions <- subset(outputSubset, outputSubset$`Stem ID (answers)`!=0)
-
-    if(nrow(outputSubsetSegmentQuestions)!=0){
-      for(rowLoop in 1:nrow(outputSubsetTopline)){
-
-        outputSubsetSegmentIDs <- subset(outputSubsetSegmentQuestions, outputSubsetSegmentQuestions$`Banner QID`==outputSubsetTopline$`Banner QID`[rowLoop])
-
-        for(everyPeriodLoop in 1:numberOfPeriods){
-
-          againstCount <- as.numeric(outputSubsetTopline[rowLoop, first_response_count_column - 1 + everyPeriodLoop])
-          againstSize <- as.numeric(outputSubsetTopline[rowLoop, last_response_count_column + everyPeriodLoop])
-
-          for(everyStemLoop in 1:nrow(outputSubsetSegmentIDs)){
-
-            toCount <- as.numeric(outputSubsetSegmentIDs[everyStemLoop, first_response_count_column - 1 + everyPeriodLoop])
-            toSize <- as.numeric(outputSubsetSegmentIDs[everyStemLoop, last_response_count_column + everyPeriodLoop])
-
-            if(is.na(againstCount) == FALSE){
-              if(is.na(toCount) == FALSE){
-                if(againstCount > 0 && againstCount != againstSize){
-                  if(toCount > 0 && toCount != toSize){
-
-                    prop <- prop.test(c(againstCount,toCount), c(againstSize,toSize))
-                    p_value <- prop$p.value
-
-                    if (p_value <= .05){
-                      # Report the value of the topline proportion subtracted from the segment proportion
-                      # e.g. if the segment has a bigger proportion than the topline, it is positive
-                      # indicating it is larger than the topline
-                      percent_difference <- (prop$estimate[1]-prop$estimate[2])/prop$estimate[2] %>%
-                        as.numeric(.)
-                      outputStats[grep(outputSubsetSegmentIDs$`Unique Row ID`[everyStemLoop], outputStats$`Unique Row ID`), (dateSigColsEnd+everyPeriodLoop)] <- percent_difference
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-
+  sig_colnames <- grep('significance', colnames(output_stats))
 
 
   # Create identifier for how many times a row has recently had statistical significance either in time or relative to topline
 
-  if(numberOfPeriods <= 3){
-    outputStats$`Stats Flag` <- rowSums(outputStats[, (last_total_response_count_column+1):ncol(outputStats)] != 0)
-  } else{
-    outputStats$`Stats Flag` <- rowSums(outputStats[, c((number_columns_outputStats-numberOfPeriods-1):(number_columns_outputStats-numberOfPeriods),
-                                                        (number_columns_outputStats-2):number_columns_outputStats)] != 0)
+  output_stats$`Stats Flag` <- rowSums(output_stats[, sig_colnames], na.rm = TRUE) %>%
+    abs()
+
+  output_stats_topline <- output_stats[which(output_stats$`Stem QID` == 0), ] %>%
+  	.[which(.$`Answer Flag` == 2), ]
+  output_stats_seg_and_crosstab <- output_stats[which(output_stats$`Stem QID` != 0), ] %>%
+  	.[which(.$`Answer Flag` == 2), ]
+
+  # Adjust for topline by using cutoff values among toplines and crosstabs separately
+  cutoff_stats_flags_topline <- cutoff_stats_flags
+
+
+  while(number_of_unique_topline_charts > max_chart_return){
+    output_stats_topline$decile <- ntile(output_stats_topline$`Stats Flag`, cutoff_stats_flags_topline)
+    number_of_unique_topline_charts <- output_stats_topline$`Banner QID`[which(output_stats_topline$decile == cutoff_stats_flags_topline)] %>%
+      length()
+
+    cutoff_stats_flags_topline <- cutoff_stats_flags_topline + max_chart_iterate
   }
 
-  for(i in 1:nrow(outputStats)){
-    if( outputStats$`Stem QID`[i] == 0){
-       outputStats$`Stats Flag`[i] <- outputStats$`Stats Flag`[i]*2 + 1 # Adjustment for topline results which do not have segment significance
-    }
-  }
+  cutoff_stats_flags_seg_and_crosstab <- cutoff_stats_flags
 
-  max_stats_flags <- max(outputStats$`Stats Flag`)
-  cutoff_stats_flags_value <- round(max_stats_flags*cutoff_stats_flags)
+  while(number_of_unique_seg_and_crosstab_charts > max_chart_return){
+  	output_stats_seg_and_crosstab$decile <- ntile(output_stats_seg_and_crosstab$`Stats Flag`, cutoff_stats_flags_seg_and_crosstab)
+    number_of_unique_seg_and_crosstab_charts <- output_stats_seg_and_crosstab$`Banner QID`[which(output_stats_seg_and_crosstab$decile == cutoff_stats_flags_seg_and_crosstab)] %>%
+      length()
 
-  max_date_percent_diff <- outputStats[, dateSigCols] %>%
-    abs() %>%
-    max()
-
-  if(max_date_percent_diff >= 2){
-    cutoff_date_flags_value <- cutoff_date_flags
-  } else{
-    cutoff_date_flags_value <- max_date_percent_diff*cutoff_date_flags
+    cutoff_stats_flags_seg_and_crosstab <- cutoff_stats_flags_seg_and_crosstab + max_chart_iterate
   }
 
 
-  max_seg_percent_diff <-  outputStats[, segSigCols] %>%
-    abs() %>%
-    max()
-  cutoff_seg_flags_value <- max_seg_percent_diff*cutoff_seg_flags
+  output_stats_topline <- output_stats_topline[which(output_stats_topline$decile == max(output_stats_topline$decile)), ]
+  output_stats_seg_and_crosstab <- output_stats_seg_and_crosstab[which(output_stats_seg_and_crosstab$decile == max(output_stats_seg_and_crosstab$decile)), ]
 
-  if(max_seg_percent_diff >= 2){
-    cutoff_seg_flags_value <- cutoff_seg_flags
-  } else{
-    cutoff_seg_flags_value <- max_date_percent_diff*cutoff_seg_flags
-  }
+  output_stats_deciles <- rbind(output_stats_topline, output_stats_seg_and_crosstab)
 
-  for(chart_loop in 1:nrow(outputStats)){
-    if(!is.na(outputStats$`Answer Flag`[chart_loop])){
-      if(outputStats$`Answer Flag`[chart_loop] == 2){
-        if(!is.na(outputStats$`Stats Flag`[chart_loop])){
-          if(outputStats$`Stats Flag`[chart_loop] >= cutoff_stats_flags_value){
-            if(abs(rowMeans(outputStats[chart_loop, dateSigCols])) >= cutoff_date_flags_value){
-              outputStats$Chart[chart_loop] = 1
-            }
-            if(abs(rowMeans(outputStats[chart_loop, segSigCols])) >= cutoff_seg_flags_value){
-              outputStats$Chart[chart_loop] = 1
-            }
-          }
-        }
-      }
-    }
-  }
+  output_stats <- left_join(output_stats, output_stats_deciles, by = colnames(output_stats))
+  output_stats$Chart[which(!is.na(output_stats$decile))] <- 1
+  output_stats <- output_stats[ , -which(colnames(output_stats) == 'decile')]
+
 
   if(exists('batch_time')){
-    outputStatsName <- outputName("Output - Responses - Formatted with Stats", batch_time = batch_time)
+    output_statsName <- outputName("Output - Responses - Formatted with Stats", batch_time = batch_time)
 
   } else{
-    outputStatsName <- outputName("Output - Responses - Formatted with Stats")
+    output_statsName <- outputName("Output - Responses - Formatted with Stats")
   }
 
-  saveRDS(outputStats, file = outputStatsName)
+  saveRDS(output_stats, file = output_statsName)
+
+  # write.table(output_stats, file=paste0(output_statsName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+
+  return(output_stats)
 
   # write.table(outputStats, file=paste0(outputStatsName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
-
-  return(outputStats)
 
 }
