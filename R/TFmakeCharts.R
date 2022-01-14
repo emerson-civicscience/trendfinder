@@ -1,4 +1,7 @@
-TFmakeCharts <- function(input_TFmakeCharts, use_tags = NULL){
+TFmakeCharts <- function(input_TFmakeCharts,
+												 use_tags = TRUE,
+												 must_plot = NULL,
+												 plot_all = FALSE){
 
   # input_TFmakeCharts <- outputFormatted
 
@@ -7,7 +10,7 @@ TFmakeCharts <- function(input_TFmakeCharts, use_tags = NULL){
 	# input_TFmakeCharts <- input_TFmakeCharts[-which(input_TFmakeCharts$`Stem QID` == input_TFmakeCharts$`Banner QID`), ]
 	columns_wanted <- colnames(input_TFmakeCharts)
 
-	if(is.null(use_tags)){
+	if(use_tags){
 		dt <- left_join(input_TFmakeCharts, tag_table, by = c("Stem Answer ID" = "Answer ID"))
 		colnames(dt) <- gsub("Tag", "Stem Tag", colnames(dt))
 		dt <- left_join(dt, tag_table, by = c("Banner Answer ID" = "Answer ID"))
@@ -37,10 +40,15 @@ TFmakeCharts <- function(input_TFmakeCharts, use_tags = NULL){
 
 	} else{
 		dt <- input_TFmakeCharts
+	}
+
+	if(plot_all){
+		dt$Chart <- 1
+	} else if(!is.null(must_plot)){
+		for(i in must_plot){
+			dt$Chart[which(dt$`Stem QID`== i[1] & dt$`Banner QID`== i[2])] <- 1
 		}
-
-
-
+	}
 
 
 	ref_table <- dt[which(dt$Chart == 1), c("Stem QID", "Stem Group ID", "Banner QID", "Banner Group ID")] %>%
@@ -66,6 +74,9 @@ TFmakeCharts <- function(input_TFmakeCharts, use_tags = NULL){
 
   # write.table(dt, file=paste0('~/TrendFinder/Outputs/2022-01-05/dt 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
   # write.table(ref_table, file=paste0('~/TrendFinder/Outputs/2022-01-05/ref_table 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+
+  # python_loc <- file.path(.libPaths()[grep('home', .libPaths())], 'trendfinder', 'R')
+  # source_python(file.path(python_loc, "writeExcel.py"))
 
   source_python("~/TrendFinder/trendfinder/R/writeExcel.py")
 

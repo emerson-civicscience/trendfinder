@@ -2,6 +2,8 @@
 outputName <- function(outputType = NULL,
                        batch_time = NULL) {
 
+  outputFilePath <- outputFilePathMaker()
+
   batch_time_file_name <- batch_time %>%
     as.character() %>%
     str_replace_all(':', '_') %>%
