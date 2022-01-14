@@ -1,12 +1,21 @@
-TFcrosstabQuestionHandler <- function(crosstab_input = NULL,
+TFcrosstabQuestionHandler <- function(manual_crosstab_input = NULL,
+																			use_manual_crosstab_only = NULL,
 																			stem_questions = NULL,
 																			banner_questions = NULL,
 																			weighting_schemes = NULL){
 
-  if(!is.null(stem_questions) && !is.null(banner_questions)){
+	# Should create error handler here to throw an error about number of columns if not 2 or 3
+	if(!is.null(manual_crosstab_input)){
+		if(ncol(manual_crosstab_input) == 2){
+			colnames(manual_crosstab_input) <- c('stem', 'banner')
+		} else if(ncol(manual_crosstab_input) == 3){
+			colnames(manual_crosstab_input) <- c('stem', 'banner', 'weight')
+		}
+	}
 
+  if(!is.null(stem_questions) && !is.null(banner_questions) && !use_manual_crosstab_only){
     stem_banner_cross <- expand.grid(stem_questions, banner_questions)
-    colnames(stem_banner_cross) <- c('seg', 'com')
+    colnames(stem_banner_cross) <- c('stem', 'banner')
 
     if(is.null(weighting_schemes)){
     	stem_banner_cross$weight <- NA
@@ -26,10 +35,12 @@ TFcrosstabQuestionHandler <- function(crosstab_input = NULL,
       }
     }
 
-    crosstab_input <- rbind(stem_banner_cross, crosstab_input)
+    crosstab_input <- rbind(stem_banner_cross, manual_crosstab_input)
+  } else{
+  	crosstab_input <- manual_crosstab_input
   }
 
-	crosstab_input <- unique(crosstab_input)
+	crosstab_input <- crosstab_input[!duplicated(crosstab_input), ]
 
   return(crosstab_input)
 

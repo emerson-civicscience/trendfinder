@@ -100,7 +100,7 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		        })
 		
 		    worksheet.insert_chart(chart_row, chart_col, chart_dict[chart_name])
-		    worksheet.set_zoom(70)
+		    worksheet.set_zoom(80)
 		
 		
 		sheet_number = 0
@@ -119,19 +119,25 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		    # Since the code handles topline results (which don't have a "stem" question), this 
 		    # skips finding the question text for the stem
 		    # Assign "Stem" to 'Stem QID'to parse the series info for the makeChart function
-		    if stem_df.shape[0] != 0:
-		    		stem_df = stem_df.reset_index(drop=True, inplace=False)
-		    		stem_df['Stem QID'] = "Stem"        
+		            
 		    
 		    banner_df = pandas_df[pandas_df["Stem QText"] == "Topline"]
 		    banner_df = banner_df[banner_df["Banner QID"] == banner_q]
 		    banner_df = banner_df[banner_df["Banner Group ID"] == banner_group]
+		    
+		    if stem_df.shape[0] != 0:
+			    	if stem_df.equals(banner_df):
+			    			plot_topline_2 = False
+			    	else:
+			    			plot_topline_2 = True
+		    				stem_df = stem_df.reset_index(drop=True, inplace=False)
+		    				stem_df['Stem QID'] = "Stem"
+		    		
 		    if banner_df.shape[0] != 0:
 		    		banner_df = banner_df.reset_index(drop=True, inplace=False)
 		    		
 		    		# Assign "Banner" to 'Stem QID'to parse the series info for the makeChart function
-		    		banner_df['Stem QID'] = "Banner"
-		    		
+		    		banner_df['Stem QID'] = "Banner"		
 		    
 		    crosstab_df = pandas_df[pandas_df["Stem QID"] == stem_q]
 		    crosstab_df = crosstab_df[crosstab_df["Stem Group ID"] == stem_group]
@@ -143,8 +149,11 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		    first_stem_answer = crosstab_df['Stem Answer ID'].iloc[0]
 		    first_banner_answer = crosstab_df['Banner Answer ID'].iloc[0]
 		    
-		    combined_df = pd.concat([stem_df, banner_df, crosstab_df])
-		    
+		    if plot_topline_2:
+		    		combined_df = pd.concat([stem_df, banner_df, crosstab_df])
+		    else: 
+		    		combined_df = pd.concat([banner_df, crosstab_df])
+		    		
 		    combined_df_cols = combined_df.columns.tolist()
 		    combined_df_excel_cols = ['Stem QID', 'Stem Answer ID', 
 		                              'Banner QID', 'Banner Answer ID', 
@@ -152,11 +161,13 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		
 		    combined_df_excel = combined_df[combined_df_excel_cols]
 		    combined_df_excel.reset_index(drop=True, inplace=True)
-		    
 		    topline_1_series = combined_df_excel.index[combined_df_excel['Stem QID'] == 'Banner'].tolist()
-		    topline_2_series = combined_df_excel.index[combined_df_excel['Stem QID'] == 'Stem'].tolist()
 		    
-		    crosstab_ref_rows = combined_df_excel.index[~combined_df_excel.index.isin(topline_1_series + topline_2_series)].tolist()
+		    if plot_topline_2:
+		    		topline_2_series = combined_df_excel.index[combined_df_excel['Stem QID'] == 'Stem'].tolist()
+		    		crosstab_ref_rows = combined_df_excel.index[~combined_df_excel.index.isin(topline_1_series + topline_2_series)].tolist()
+		    else: 
+		    		crosstab_ref_rows = combined_df_excel.index[~combined_df_excel.index.isin(topline_1_series)].tolist()
 		    
 		    crosstab_subset = combined_df_excel.loc[crosstab_ref_rows, ]
 		    
@@ -209,48 +220,37 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
 		
 		        makeChart(chart_title_topline_1, topline_1_series, category_name_row)
 		
-		    if len(topline_2_series) != 0:
-		        chart_number += 1
-		        chart_col = 2
-		        category_name_row = str(first_table_row+3)
-		        chart_title_topline_2 = '\'' + truncated_sheet_name + '\'!' + stem_qtext_location
+		    if plot_topline_2:
+		    		if len(topline_2_series) != 0:
+		        		chart_number += 1
+		        		chart_col = 2
+		        		category_name_row = str(first_table_row+3)
+		        		chart_title_topline_2 = '\'' + truncated_sheet_name + '\'!' + stem_qtext_location
 		
-		        makeChart(chart_title_topline_2, topline_2_series, category_name_row)
-		
-		        for crosstab_1_loop in banner_answers:
-		            # Finds rows wanted for crosstab 1
-		            crosstab_1_series = combined_df_excel[combined_df_excel['Banner Answer ID'] == crosstab_1_loop].index.tolist()
-		
-		            if len(combined_df_excel.index) != len(topline_1_series):
-		
-		                chart_number += 1
-		                chart_col = 0
-		                chart_row += 25
-		
-		                category_name_row = str(first_table_row+2)
-		                chart_title_crosstab_1_formula = '=&" cut by "&' + stem_qtext_location
-		
-		                makeChart(chart_title_crosstab_1_formula, crosstab_1_series, category_name_row)
-		
-		        chart_row = 2
-		
-		        for crosstab_2_loop in stem_answers:
-		            crosstab_2_series = crosstab_subset[crosstab_subset['Stem Answer ID'] == crosstab_2_loop].index.tolist()
-		
-		            if topline_1_series != crosstab_2_series:
-		                chart_number += 1
-		                chart_col = 2
-		                chart_row += 25
-		
-		            # Finds rows wanted for crosstab 2
-		            # With crosstab 2, I did not include the topline answer this time around. I found it of limited
-		            # usefulness and it might get confusing on the same chart
-		            # I will put it in its own chart if I want to revive it
-		            # This is accomplished by retrieving index values from crosstab_subset instead of combined_df_excel
-		
-		                category_name_row = str(first_table_row+3)
-		                chart_title_crosstab_2_formula = '=' + banner_qtext_location + '&" cut by "&' 
-		
-		                makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
-									
+		        		makeChart(chart_title_topline_2, topline_2_series, category_name_row)
+		        		
+		    chart_col = 0
+		    for crosstab_1_loop in banner_answers:
+		    		crosstab_1_series = combined_df_excel[combined_df_excel['Banner Answer ID'] == crosstab_1_loop].index.tolist()
+		    		if len(combined_df_excel.index) != len(topline_1_series):
+		    				chart_number += 1
+		    				chart_row += 25
+		    				category_name_row = str(first_table_row+2)
+		    				chart_title_crosstab_1_formula = '=&" cut by "&' + stem_qtext_location
+		    				
+		    				makeChart(chart_title_crosstab_1_formula, crosstab_1_series, category_name_row)
+    								
+		    chart_row = 2
+		    chart_col = 2		
+		    for crosstab_2_loop in stem_answers:
+		    		crosstab_2_series = crosstab_subset[crosstab_subset['Stem Answer ID'] == crosstab_2_loop].index.tolist()
+		    				
+		    		if topline_1_series != crosstab_2_series:
+		    				chart_number += 1
+		    				chart_row += 25
+		    				category_name_row = str(first_table_row+3)
+		    				chart_title_crosstab_2_formula = '=' + banner_qtext_location + '&" cut by "&'
+		    						
+		    				makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
+		    						
 		writer.save()

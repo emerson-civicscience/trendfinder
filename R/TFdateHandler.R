@@ -10,6 +10,10 @@ TFdateHandler <- function(data_start_dates, data_end_dates = NULL, time_period_l
 		data_end_dates <- data_start_dates %>%
 			.[-1]
 
+		if(length(data_end_dates) == 0){
+			data_end_dates <- today()+1
+		}
+
 		if(is.null(time_period_length)){
 			time_period_length <- as.numeric(difftime(data_start_dates[length(data_start_dates)], data_start_dates[length(data_start_dates) - 1]))
 		}
