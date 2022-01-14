@@ -1,3 +1,5 @@
+#' @export
+
 engage <- function(bi.user = NULL,
 									 bi.password = NULL,
 									 stem_questions = NULL,
