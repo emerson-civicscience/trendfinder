@@ -1,7 +1,5 @@
 TFformat <- function(inputFormat, time_period = NULL){
 
-  # inputFormat <- readRDS('~/TrendFinder/Outputs/2021-12-27/inputFormat.rds')
-
   # inputFormat <- outputWider
 
   inputFormat <- inputFormat[!duplicated(inputFormat), ]
@@ -80,6 +78,8 @@ TFformat <- function(inputFormat, time_period = NULL){
   responseColNumbers <- grep(RCsuffix, colnames(outputFormatted))
   responseCols <- colnames(outputFormatted)[responseColNumbers]
   totalCols <- gsub(RCsuffix, TRsuffix, responseCols)
+
+  outputFormatted <- as.data.frame(outputFormatted)
 
   outputFormatted$unique <- paste(outputFormatted$weighting_scheme,
                                   outputFormatted$`Stem Answer ID`,

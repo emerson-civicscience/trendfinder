@@ -1,7 +1,8 @@
 TFmakeCharts <- function(input_TFmakeCharts,
 												 use_tags = TRUE,
 												 must_plot = NULL,
-												 plot_all = FALSE){
+												 plot_all = FALSE,
+												 python_loc = NULL){
 
   # input_TFmakeCharts <- outputFormatted
 
@@ -75,10 +76,12 @@ TFmakeCharts <- function(input_TFmakeCharts,
   # write.table(dt, file=paste0('~/TrendFinder/Outputs/2022-01-05/dt 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
   # write.table(ref_table, file=paste0('~/TrendFinder/Outputs/2022-01-05/ref_table 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
-  # python_loc <- file.path(.libPaths()[grep('home', .libPaths())], 'trendfinder', 'R')
-  # source_python(file.path(python_loc, "writeExcel.py"))
+  if(is.null(python_loc)){
+  	python_loc <- file.path(.libPaths()[grep('home', .libPaths())], 'trendfinder', 'exec')
 
-  source_python("~/TrendFinder/trendfinder/R/writeExcel.py")
+  }
+
+  source_python(file.path(python_loc, "writeExcel.py"))
 
   writeExcel(pandas_df,
              data_colnames_wanted_py,
