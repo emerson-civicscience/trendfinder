@@ -9,7 +9,7 @@ Authors@R:
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: Finds trends.
 Depends:
-    R (>= 3.2.0)
+    R (>= 3.2.0),
     data.table,
     civicscienceR,
     dplyr,
