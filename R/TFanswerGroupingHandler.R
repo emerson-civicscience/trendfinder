@@ -3,6 +3,8 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 																		numberOfPeriods = numberOfPeriods,
 																		unique_answer_groupings = unique_answer_groupings){
 
+	# inputAnswerGroupingHandler <- inputFormat
+
 	answers_with_groups <- unique(answer_groupings$`Answer ID`)
 
 	answers_with_groups_stem_table <- inputAnswerGroupingHandler[which(inputAnswerGroupingHandler$stem %in% answers_with_groups), ]
@@ -13,13 +15,19 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 	colnames(answer_table_stem)[grep('Answer', colnames(answer_table_stem))] <- paste0("Stem ", colnames(answer_table_stem)[grep('Answer', colnames(answer_table_stem))])
 	answer_table_stem <- left_join(answer_table_stem, unique_answer_groupings, by = c("Stem Answer Group ID" = "Answer Group ID", "Stem Answer Group Label" = "Answer Group Label", "Stem Answer Label" = "Answer Label"))
 	answer_table_stem$`Stem Answer ID` <- answer_table_stem$`Answer ID`
-	answer_table_stem <- answer_table_stem[, -which(startsWith(colnames(answer_table_stem), 'Answer ID'))]
+	drop_stem_col <- -which(startsWith(colnames(answer_table_stem), 'Answer ID'))
+	answer_table_stem <- as.data.frame(answer_table_stem)
+	answer_table_stem <- answer_table_stem[, drop_stem_col]
+
 
 	answer_table_banner <- left_join(answers_with_groups_banner_table, answer_groupings, by = c("banner" = "Answer ID"))
 	colnames(answer_table_banner)[grep('Answer', colnames(answer_table_banner))] <- paste0("Banner ", colnames(answer_table_banner)[grep('Answer', colnames(answer_table_banner))])
 	answer_table_banner <- left_join(answer_table_banner, unique_answer_groupings, by = c("Banner Answer Group ID" = "Answer Group ID", "Banner Answer Group Label" = "Answer Group Label", "Banner Answer Label" = "Answer Label"))
 	answer_table_banner$`Banner Answer ID` <- answer_table_banner$`Answer ID`
-	answer_table_banner <- answer_table_banner[, -which(startsWith(colnames(answer_table_banner), 'Answer ID'))]
+	drop_banner_col <- -which(startsWith(colnames(answer_table_banner), 'Answer ID'))
+	answer_table_banner <- as.data.frame(answer_table_banner)
+	answer_table_banner <- answer_table_banner[, drop_banner_col]
+
 
 	answer_table_both <- left_join(answers_with_groups_both_table, answer_groupings, by = c("stem" = "Answer ID"))
 	answer_table_both <- left_join(answer_table_both, unique_answer_groupings, by = c("Answer Group ID", "Answer Group Label", "Answer Label"))
@@ -28,10 +36,12 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 	answer_table_both <- left_join(answer_table_both, answer_groupings, by = c("banner" = "Answer ID"))
 	answer_table_both <- left_join(answer_table_both, unique_answer_groupings, by = c("Answer Group ID", "Answer Group Label", "Answer Label"))
 	colnames(answer_table_both)[startsWith(colnames(answer_table_both), "Answer")] <- paste0("Banner ", colnames(answer_table_both)[startsWith(colnames(answer_table_both), "Answer")])
+	drop_both_col <- -which(colnames(answer_table_both) %in% c("stem", "banner"))
 
-	answer_table_both <- answer_table_both[, -which(colnames(answer_table_both) %in% c("stem", "banner"))]
+	answer_table_both <- as.data.frame(answer_table_both)
+	answer_table_both <- answer_table_both[, drop_both_col]
 
-	if(nrow(answer_table_stem) > 0){
+	if(!is.null(nrow(answer_table_stem)) && nrow(answer_table_stem) > 0){
 		answer_table_stem$`Banner Answer ID` <- NA
 		answer_table_stem$`Banner Answer Group ID` <- NA
 		answer_table_stem$`Banner Answer Group Label` <- NA
@@ -41,10 +51,17 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 		colnames(no_row_banner) <- gsub('Stem', 'Banner', colnames(no_row_banner))
 		answer_table_stem <- cbind(answer_table_stem, no_row_banner)
 	}
-	answer_table_stem$`Banner Answer ID` <- answer_table_stem$banner
-	answer_table_stem <- answer_table_stem[, -which(colnames(answer_table_stem) %in% c("stem", "banner"))]
 
-	if(nrow(answer_table_banner) > 0){
+	if(nrow(answer_table_stem) != 0){
+		answer_table_stem$`Banner Answer ID` <- answer_table_stem$banner
+		drop_stem_col_2 <- -which(colnames(answer_table_stem) %in% c("stem", "banner"))
+		answer_table_stem <- answer_table_stem[, drop_stem_col_2]
+	} else{
+		answer_table_stem <- NULL
+	}
+
+
+	if(!is.null(nrow(answer_table_banner)) && nrow(answer_table_banner) > 0){
 		answer_table_banner$`Stem Answer ID` <- NA
 		answer_table_banner$`Stem Answer Group ID` <- NA
 		answer_table_banner$`Stem Answer Group Label` <- NA
@@ -54,8 +71,18 @@ TFanswerGroupingHandler <- function(inputAnswerGroupingHandler,
 		colnames(no_row_stem) <- gsub('Banner', 'Stem', colnames(no_row_stem))
 		answer_table_banner <- cbind(answer_table_banner, no_row_stem)
 	}
-	answer_table_banner$`Stem Answer ID` <- answer_table_banner$stem
-	answer_table_banner <- answer_table_banner[, -which(colnames(answer_table_banner) %in% c("stem", "banner"))]
+
+	if(nrow(answer_table_banner) != 0){
+		answer_table_banner$`Stem Answer ID` <- answer_table_banner$stem
+		drop_banner_col_2 <- -which(colnames(answer_table_banner) %in% c("stem", "banner"))
+		answer_table_banner <- answer_table_banner[, drop_banner_col_2]
+	} else{
+		answer_table_banner <- NULL
+	}
+
+	if(nrow(answer_table_banner) == 0){
+		answer_table_both <- NULL
+	}
 
 	outputAnswerGrouping <- rbind(answer_table_both, answer_table_stem, answer_table_banner)
 

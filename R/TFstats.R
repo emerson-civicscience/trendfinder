@@ -1,4 +1,9 @@
-TFstats <- function(input_stats, cutoff_stats_flags, max_chart_return, max_chart_iterate, number_of_unique_topline_charts = 1000, number_of_unique_seg_and_crosstab_charts = 1000){
+TFstats <- function(input_stats,
+                    cutoff_stats_flags,
+                    max_chart_return,
+                    max_chart_iterate,
+                    number_of_unique_topline_charts = 1000,
+                    number_of_unique_seg_and_crosstab_charts = 1000){
   # input_stats <- outputFormatted
 
   input_stats$`Stem Group ID`[which(is.na(input_stats$`Stem Group ID`))] <- 0
@@ -46,7 +51,7 @@ TFstats <- function(input_stats, cutoff_stats_flags, max_chart_return, max_chart
 
   number_of_time_periods <- nrow(start_and_end_dates)
 
-  if(number_of_time_periods < 2){
+  if(number_of_time_periods < 3){
     total_date_periods <- number_of_time_periods
     total_seg_periods <- number_of_time_periods
   } else {
@@ -64,7 +69,7 @@ TFstats <- function(input_stats, cutoff_stats_flags, max_chart_return, max_chart
                                mc.cores = detectCores()) %>%
       rbindlist()
   } else{
-    date_significance_table <- NULL
+    date_sign_table <- NULL
   }
 
 
@@ -106,7 +111,7 @@ TFstats <- function(input_stats, cutoff_stats_flags, max_chart_return, max_chart
 
   # Create identifier for how many times a row has recently had statistical significance either in time or relative to topline
 
-  output_stats$`Stats Flag` <- rowSums(output_stats[, sig_colnames], na.rm = TRUE) %>%
+  output_stats$`Stats Flag` <- rowSums(as.data.frame(output_stats[, sig_colnames]), na.rm = TRUE) %>%
     abs()
 
   output_stats_topline <- output_stats[which(output_stats$`Stem QID` == 0), ] %>%
@@ -136,9 +141,13 @@ TFstats <- function(input_stats, cutoff_stats_flags, max_chart_return, max_chart
     cutoff_stats_flags_seg_and_crosstab <- cutoff_stats_flags_seg_and_crosstab + max_chart_iterate
   }
 
+  if(length(output_stats_topline$decile) != 0){
+    output_stats_topline <- output_stats_topline[which(output_stats_topline$decile == max(output_stats_topline$decile)), ]
+  }
 
-  output_stats_topline <- output_stats_topline[which(output_stats_topline$decile == max(output_stats_topline$decile)), ]
-  output_stats_seg_and_crosstab <- output_stats_seg_and_crosstab[which(output_stats_seg_and_crosstab$decile == max(output_stats_seg_and_crosstab$decile)), ]
+  if(length(output_stats_seg_and_crosstab$decile) != 0){
+    output_stats_seg_and_crosstab <- output_stats_seg_and_crosstab[which(output_stats_seg_and_crosstab$decile == max(output_stats_seg_and_crosstab$decile)), ]
+  }
 
   output_stats_deciles <- rbind(output_stats_topline, output_stats_seg_and_crosstab)
 

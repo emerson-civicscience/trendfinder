@@ -1,7 +1,5 @@
 TFwider <- function(inputWider){
   # inputWider <- all_results
-  # inputWider <- readRDS('~/TrendFinder/Outputs/2021-12-17/All Results - Batch Time 2021-12-17 10_56_54 EST - groups removed.rds')
-
 
   # weights, stem, and banner are ID columns
   # batch & total.responses will be dropped and the start/end dates will be combined with response.count when widened
@@ -9,7 +7,7 @@ TFwider <- function(inputWider){
 
   input_colnames_wanted <- c("start_date", "end_date", "stem", "banner", "weighting_scheme", "response_count")
 
-  inputWiderSubset <- inputWider[, input_colnames_wanted] %>%
+  inputWiderSubset <- inputWider[, ..input_colnames_wanted] %>%
     setorder(., "start_date", "end_date")
 
   # If you've managed to compute the same values more than once, this keeps just the first occurenc
@@ -57,7 +55,9 @@ TFwider <- function(inputWider){
   # inputWiderSubset$unique <- paste(inputWiderSubset$stem, inputWiderSubset$banner, inputWiderSubset$weighting_scheme, sep=";")
   # inputWiderSubset$uniqueCrosstab <- paste(inputWiderSubset$stemQ, inputWiderSubset$bannerQ, inputWiderSubset$weighting_scheme, sep=";")
 
-  outputWider <- inputWiderSubset[, c(baseColNames, inputDataColNames)]
+  inputWiderSubset <- as.data.table(inputWiderSubset)
+
+  outputWider <- inputWiderSubset[, c(..baseColNames, ..inputDataColNames)]
 
   names(outputWider) <- c(baseColNames, inputDataColNames)
 

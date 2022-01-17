@@ -12,13 +12,15 @@ engage <- function(bi.user = NULL,
 									 weighting_schemes = NULL,
 									 run_topline = TRUE,
 									 run_crosstabs = TRUE,
+									 manual_crosstab_input = NULL,
 									 use_manual_crosstab_only = TRUE,
 									 cutoff_stats_flags = 10,
 									 max_chart_return = 50,
 									 max_chart_iterate = 5,
 									 use_tags = TRUE,
 									 must_plot = NULL,
-									 plot_all = FALSE){
+									 plot_all = FALSE,
+									 python_loc = NULL){
 
 	stem_questions <- unique(stem_questions)
 	banner_questions <- unique(banner_questions)
@@ -93,7 +95,7 @@ engage <- function(bi.user = NULL,
 
 
 
-	if(!is.null(run_topline)){
+	if(run_topline){
 
 		questionListTopline <- transpose(questionList) %>%
 			as.list()
@@ -116,7 +118,7 @@ engage <- function(bi.user = NULL,
 		toplineConditionsDeduped <- anti_join(toplineConditions, trendfinder_history, by=anti_join_columns)
 
 		if(nrow(toplineConditionsDeduped) == 0){
-			toplineResults <- NULL
+			outputResults <- NULL
 			trendfinder_history_update <- NULL
 			allConditions <- toplineConditions
 		} else{
@@ -134,14 +136,13 @@ engage <- function(bi.user = NULL,
 			toplineResults <- mclapply(toplineConditionsList, TFtopline,
 																 mc.cores = detectCores()) %>%
 				rbindlist()
+
+			fileName <- outputName("Topline Results", batch_time = batch_time_char)
+			saveRDS(toplineResults, paste0(fileName, ".rds"))
+
+			outputResults <- toplineResults
 		}
 
-		# toplineResults <- TFoutputResultsFormat(toplineResults, batch_time = batch_time_char)
-
-		fileName <- outputName("Topline Results", batch_time = batch_time_char)
-		saveRDS(toplineResults, paste0(fileName, ".rds"))
-
-		outputResults <- toplineResults
 		if(!is.null(outputResults)){
 			outputResults$data.banner <- as.character(outputResults$data.banner)
 		}
@@ -151,6 +152,7 @@ engage <- function(bi.user = NULL,
 
 	} else{
 
+		toplineResults <- NULL
 		outputResults <- NULL
 		trendfinder_history_update <- NULL
 		allConditions <- NULL
@@ -210,9 +212,7 @@ engage <- function(bi.user = NULL,
 	}
 
 
-	if(is.null(run_crosstabs)){
-		crosstabResults <- NULL
-	} else{
+	if(run_crosstabs){
 		if(is.null(crosstab_input)){
 			if(length(questionList) < 3){
 				crosstab_input <- data.table(seg = stem_questions, com = banner_questions, weighting_scheme = weighting_schemes)
@@ -274,6 +274,9 @@ engage <- function(bi.user = NULL,
 		allConditions <- rbind(allConditions, crosstabConditions)
 
 
+
+	} else{
+		crosstabResults <- NULL
 	}
 
 	output_end_time <- Sys.time()
@@ -294,6 +297,7 @@ engage <- function(bi.user = NULL,
 	if(!is.null(trendfinder_history_update)){
 
 		trendfinder_history_update$batch <- batch_time_char
+		trendfinder_history_update <- as.data.frame(trendfinder_history_update)
 		trendfinder_history_update <- trendfinder_history_update[, c("batch", "start_date", "end_date", "weighting_scheme", "stem", "banner")]
 		trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
 		trendfinder_history <- rbind(trendfinder_history, trendfinder_history_update)
@@ -310,10 +314,10 @@ engage <- function(bi.user = NULL,
 	allConditionsAnswers <- left_join(allConditions, dataKey, by = c("stem" = "Question ID"))
 	allConditionsAnswers$`Answer ID`[which(is.na(allConditionsAnswers$`Answer ID`))] <- allConditionsAnswers$stem[which(is.na(allConditionsAnswers$`Answer ID`))]
 	allConditionsAnswers$stem <- allConditionsAnswers$`Answer ID`
-	allConditionsAnswers <- allConditionsAnswers[, anti_join_columns]
+	allConditionsAnswers <- allConditionsAnswers[, ..anti_join_columns]
 	allConditionsAnswers <- left_join(allConditionsAnswers, dataKey, by = c("banner" = "Question ID"))
 	allConditionsAnswers$banner <- allConditionsAnswers$`Answer ID`
-	allConditionsAnswers <- allConditionsAnswers[, anti_join_columns]
+	allConditionsAnswers <- allConditionsAnswers[, ..anti_join_columns]
 
 	all_results <- left_join(allConditionsAnswers, trendfinder_results, by = anti_join_columns)
 
