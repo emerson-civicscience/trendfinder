@@ -10,7 +10,6 @@ Authors@R:
 Description: Finds trends.
 Depends:
     R (>= 3.2.0)
-Imports:
     data.table,
     civicscienceR,
     dplyr,
@@ -30,6 +29,7 @@ Imports:
     RMySQL,
     DBI,
     usethis
+Imports:
 License: 
 Encoding: UTF-8
 LazyData: true
