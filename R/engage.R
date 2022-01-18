@@ -357,7 +357,9 @@ engage <- function(bi.user = NULL,
 
 	TFmakeCharts(outputFormatted,
 							 use_tags = use_tags,
-							 must_plot = must_plot)
+							 must_plot = must_plot,
+							 plot_all = plot_all,
+							 python_loc = python_loc)
 
 
 	}
