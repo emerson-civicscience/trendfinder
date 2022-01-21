@@ -283,9 +283,10 @@ engage <- function(bi.user = NULL,
 	elapsed_time <- output_end_time - batch_time
 	elapsed_time # For informational/diagnostic use
 	fileName <- outputName("Output Results", batch_time = batch_time_char)
-	outputResults <- as_tibble(outputResults)
+	
 
-	if(nrow(outputResults) > 0 ){
+	if(!is.null(outputResults)){
+	  outputResults <- as_tibble(outputResults)
 
 		outputResults <- TFoutputResultsFormat(outputResults, batch_time = batch_time_char)
 		# write.table(outputResults, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
