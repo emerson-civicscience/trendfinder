@@ -27,22 +27,19 @@ TFmakeCharts <- function(input_TFmakeCharts,
 		dt$`Banner Name`[which(!is.na(dt$`Banner Tag`))] <- dt$`Banner Tag Label`[which(!is.na(dt$`Banner Tag`))]
 
 		dt <- setorder(dt,
-									 'Stem Group ID', 'Stem QID', 'Stem Tag Order',
-									 'Banner QID', 'Banner Group ID','Banner Tag Order') %>%
-			.[, columns_wanted] %>%
-			.[!duplicated(.), ]
-
-		input_no_charts <- input_TFmakeCharts
-		input_no_charts$Chart <- 0
-
-		dt <- rbind(dt, input_no_charts)
-		dt <- unique(dt, by = c("Weighting Scheme", "Stem Answer ID", "Stem Group ID", "Banner Answer ID", "Banner Group ID"))
-
-
+		               'Stem Group ID', 'Stem QID', 'Stem Tag Order',
+		               'Banner QID', 'Banner Group ID','Banner Tag Order') %>%
+		  .[, columns_wanted]
+		
+		dt <- rbind(input_TFmakeCharts, dt)
+		
 	} else{
 		dt <- input_TFmakeCharts
 	}
 
+	dt <- dt[!duplicated(dt[c("Weighting Scheme", "Stem Group ID", "Stem Answer ID", "Banner Group ID", "Banner Answer ID")]), ]
+	
+	
 	if(plot_all){
 		dt$Chart <- 1
 	} else if(!is.null(must_plot)){
@@ -80,8 +77,10 @@ TFmakeCharts <- function(input_TFmakeCharts,
   	python_loc <- file.path(.libPaths()[grep('home', .libPaths())], 'trendfinder', 'exec')
 
   }
+  
+  python_loc_and_file <- file.path(python_loc, "writeExcel.py")
 
-  source_python(file.path(python_loc, "writeExcel.py"))
+  source_python(python_loc_and_file)
 
   writeExcel(pandas_df,
              data_colnames_wanted_py,
@@ -96,3 +95,4 @@ TFmakeCharts <- function(input_TFmakeCharts,
   }
 
 }
+
