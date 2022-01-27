@@ -5,6 +5,7 @@ engage <- function(bi.user = NULL,
 									 stem_questions = NULL,
 									 banner_questions = NULL,
 									 segment_list = NULL,
+									 segment_names = NULL,
 									 crosstab_input = NULL,
 									 data_start_dates = "2021-01-01",
 									 data_end_dates = NULL,
@@ -14,6 +15,7 @@ engage <- function(bi.user = NULL,
 									 run_crosstabs = TRUE,
 									 manual_crosstab_input = NULL,
 									 use_manual_crosstab_only = TRUE,
+									 run_stats = FALSE,
 									 cutoff_stats_flags = 10,
 									 max_chart_return = 50,
 									 max_chart_iterate = 5,
@@ -169,22 +171,25 @@ engage <- function(bi.user = NULL,
 																	data_end_dates = data_end_dates,
 																	mc.cores = detectCores()) %>%
 			rbindlist()
+		
+		segment_names <- unique(segmentConditions$stem)
 
 		weightingDictSegments <- tibble(weighting_scheme = segmentConditions$weighting_scheme, value = segmentConditions$weights) %>%
 			unique()
+		# packageVersion('tibble') # Currently using 2.1.3 and get ttps://github.com/tidyverse/tibble/issues/798
 
-		segmentConditionsDeduped <- anti_join(segmentConditions, trendfinder_history, by=anti_join_columns)
+		segmentConditionsDeduped <- anti_join(segmentConditions, trendfinder_history, by = anti_join_columns)
 
 		if(nrow(segmentConditionsDeduped) == 0){
 			segmentResults <- NULL
 		} else{
 
-			segmentConditionsDeduped <- segmentConditionsDeduped %>% select(condition_columns)
+			segmentConditionsDedupedSubset <- segmentConditionsDeduped %>% select(., all_of(condition_columns))
 
 			### Remove rows based on prior results run by TrendFinder
 			### See comment just after toplineConditions (above) for more info
 
-			segmentConditionsList <- transpose(segmentConditionsDeduped) %>%
+			segmentConditionsList <- transpose(segmentConditionsDedupedSubset) %>%
 				as.list()
 
 			segmentResults <- mclapply(segmentConditionsList, TFsegment,
@@ -193,6 +198,8 @@ engage <- function(bi.user = NULL,
 				rbindlist()
 
 			# segmentResults <- TFoutputResultsFormat(segmentResults, batch_time = batch_time_char)
+			
+			segmentConditionsDeduped <- as.data.frame(segmentConditionsDeduped)
 
 			segmentConditionsDeduped <- segmentConditionsDeduped[, which(colnames(segmentConditionsDeduped) %in% anti_join_columns)]
 			trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped)
@@ -204,6 +211,9 @@ engage <- function(bi.user = NULL,
 
 		segmentResultsChar <- segmentResults
 		segmentResultsChar$data.banner <- as.character(segmentResults$data.banner)
+		segmentResultsChar$batch <- batch_time_char
+		colnames(segmentResultsChar)[grep('data.', colnames(segmentResultsChar))] <- gsub('data.', '', colnames(segmentResultsChar)[grep('data', colnames(segmentResultsChar))])
+		colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))] <- gsub('response.count', 'response_count', colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))])
 
 		outputResults <- rbind(outputResults, segmentResultsChar)
 		segmentConditions <- segmentConditions %>% select(anti_join_columns)
@@ -347,16 +357,21 @@ engage <- function(bi.user = NULL,
 
 	# outputWider <- TFwider(all_results)
 	outputFormatted <- TFwider(all_results) %>%
-		TFformat(., time_period = time_period) %>%
-		TFstats(., cutoff_stats_flags = cutoff_stats_flags,
-						max_chart_return = max_chart_return,
-						max_chart_iterate = max_chart_iterate)
+		TFformat(., time_period = time_period, segment_names = segment_names)
+	
+	if(run_stats){
+	  outputFormatted <- TFstats(., cutoff_stats_flags = cutoff_stats_flags,
+	                             max_chart_return = max_chart_return,
+	                             max_chart_iterate = max_chart_iterate)
+	}
+		
 	# View(outputFormatted)
 
 	# write.table(outputFormatted, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 	# write.table(outputResults, file=paste0('~/TrendFinder/Outputs/2021-11-09/outputResults.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
 	TFmakeCharts(outputFormatted,
+	             segment_names = segment_names,
 							 use_tags = use_tags,
 							 must_plot = must_plot,
 							 plot_all = plot_all,

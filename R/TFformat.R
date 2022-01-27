@@ -1,4 +1,4 @@
-TFformat <- function(inputFormat, time_period = NULL){
+TFformat <- function(inputFormat, time_period = NULL, segment_names = segment_names){
 
   # inputFormat <- outputWider
 
@@ -210,7 +210,12 @@ TFformat <- function(inputFormat, time_period = NULL){
                 "Banner QID", "Banner Group ID","Banner QText", "Banner Answer ID", "Banner Name")
 
   outputFormatted <- outputFormatted[, c(baseCols, time_period, percentDiffCols, responseCols, totalCols)]
-
+  
+  if(!is.null(segment_names)){
+    outputFormatted$`Stem QText`[which(outputFormatted$`Stem QID` %in% segment_names)] <- outputFormatted$`Stem QID`[which(outputFormatted$`Stem QID` %in% segment_names)]
+    outputFormatted$`Stem Name`[which(outputFormatted$`Stem QID` %in% segment_names)] <- outputFormatted$`Stem QID`[which(outputFormatted$`Stem QID` %in% segment_names)]
+  }
+  
 
   outputFormatted$`Stem QText` <- as.character(outputFormatted$`Stem QText`) %>%
     utf8_normalize(., map_quote = TRUE)
