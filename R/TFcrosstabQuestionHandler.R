@@ -1,5 +1,5 @@
 TFcrosstabQuestionHandler <- function(manual_crosstab_input = NULL,
-																			use_manual_crosstab_only = NULL,
+																			use_manual_crosstab_only = TRUE,
 																			stem_questions = NULL,
 																			banner_questions = NULL,
 																			weighting_schemes = NULL){
@@ -41,7 +41,13 @@ TFcrosstabQuestionHandler <- function(manual_crosstab_input = NULL,
   }
 
 	crosstab_input <- crosstab_input[!duplicated(crosstab_input), ]
-
+	
+	same_stem_and_banner <- which(crosstab_input$stem == crosstab_input$banner)
+	
+	crosstab_input <- crosstab_input[-same_stem_and_banner, ]
+	
+	row.names(crosstab_input) <- NULL
+	
   return(crosstab_input)
 
 }
