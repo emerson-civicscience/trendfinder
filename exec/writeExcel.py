@@ -12,7 +12,7 @@ import xlsxwriter as xw
 import datetime
 import operator
 
-def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, segment_names_py, file_name_py):
+def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_name_py):
   pandas_df['Stem Group ID'] = pandas_df['Stem Group ID'].fillna(0)
   pandas_df['Banner Group ID'] = pandas_df['Banner Group ID'].fillna(0)
   chart_references_py['Stem Group ID'] = chart_references_py['Stem Group ID'].fillna(0).astype(int)
@@ -63,9 +63,9 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, segment_
       else:
         chart_title_formula = chart_title_formula + series[0] + str(first_category_name_row)
         chart_title_col = 'C'
-        chart_title_cell = chart_title_col + str(chart_row+1)
-        worksheet.write(chart_title_cell, chart_title_formula, title_cell_format)
-        chart.set_title({'name': [truncated_sheet_name, chart_row, chart_col], 'name_font': {'name': 'Segoe UI Light', 'size': 13, 'color': '#595959'}})
+      chart_title_cell = chart_title_col + str(chart_row+1)
+      worksheet.write(chart_title_cell, chart_title_formula, title_cell_format)
+      chart.set_title({'name': [truncated_sheet_name, chart_row, chart_col], 'name_font': {'name': 'Segoe UI Light', 'size': 13, 'color': '#595959'}})
     else:
       chart.set_title({'name': chart_title_formula, 'name_font': {'name': 'Segoe UI Light', 'size': 13, 'color': '#595959'}})
           
@@ -221,19 +221,19 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, segment_
           chart_row += 25
           category_name_row = str(first_table_row+2)
           chart_title_crosstab_1_formula = '=&" cut by "&' + stem_qtext_location
-          
           makeChart(chart_title_crosstab_1_formula, crosstab_1_series, category_name_row)
-          chart_row = 2
-          chart_col = 2	
           
-          for crosstab_2_loop in stem_answers:
-            crosstab_2_series = crosstab_subset[crosstab_subset['Stem Answer ID'] == crosstab_2_loop].index.tolist()
-            if topline_1_series != crosstab_2_series:
-              chart_number += 1
-              chart_row += 25
-              category_name_row = str(first_table_row+3)
-              chart_title_crosstab_2_formula = '=' + banner_qtext_location + '&" cut by "&'
-              makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
+      chart_row = 2
+      chart_col = 2	
+          
+      for crosstab_2_loop in stem_answers:
+        crosstab_2_series = crosstab_subset[crosstab_subset['Stem Answer ID'] == crosstab_2_loop].index.tolist()
+        if topline_1_series != crosstab_2_series:
+          chart_number += 1
+          chart_row += 25
+          category_name_row = str(first_table_row+3)
+          chart_title_crosstab_2_formula = '=' + banner_qtext_location + '&" cut by "&'
+          makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
               
   writer.save()
 
