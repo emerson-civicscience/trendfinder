@@ -87,8 +87,13 @@ TFmakeCharts <- function(input_TFmakeCharts,
   writeExcel(pandas_df,
              data_colnames_wanted_py,
              chart_references_py,
-             segment_names_py,
              file_name_py)
+  
+  # writeExcel(pandas_df,
+  #            data_colnames_wanted_py,
+  #            chart_references_py,
+  #            segment_names_py,
+  #            file_name_py)
 
   fileCopyStatus <- file.copy(from = file.path(getwd(), file_name),
                               to   = file.path(outputFilePathMaker(), file_name))
