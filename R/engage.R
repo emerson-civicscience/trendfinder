@@ -16,6 +16,7 @@ engage <- function(bi.user = NULL,
 									 manual_crosstab_input = NULL,
 									 use_manual_crosstab_only = TRUE,
 									 run_stats = FALSE,
+									 use_default_answer_flag = FALSE,
 									 cutoff_stats_flags = 10,
 									 max_chart_return = 50,
 									 max_chart_iterate = 5,
@@ -357,7 +358,7 @@ engage <- function(bi.user = NULL,
 
 	# outputWider <- TFwider(all_results)
 	outputFormatted <- TFwider(all_results) %>%
-		TFformat(., time_period = time_period, segment_names = segment_names)
+		TFformat(., time_period = time_period, segment_names = segment_names, use_default_answer_flag = use_default_answer_flag)
 	
 	if(run_stats){
 	  outputFormatted <- TFstats(., cutoff_stats_flags = cutoff_stats_flags,

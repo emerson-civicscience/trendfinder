@@ -1,4 +1,7 @@
-TFformat <- function(inputFormat, time_period = NULL, segment_names = segment_names){
+TFformat <- function(inputFormat, 
+                     time_period = NULL, 
+                     segment_names = segment_names, 
+                     use_default_answer_flag = FALSE){
 
   # inputFormat <- outputWider
 
@@ -195,6 +198,10 @@ TFformat <- function(inputFormat, time_period = NULL, segment_names = segment_na
 
 
   outputFormatted$`Answer Flag` <- as.numeric(outputFormatted$`Stem Answer Flag`) + as.numeric(outputFormatted$`Banner Answer Flag`)
+  
+  if(use_default_answer_flag){
+    outputFormatted$`Answer Flag`[which(is.na(outputFormatted$`Answer Flag`))] <- 2
+  }
 
   outputFormatted$`Stats Flag` <- NA
   outputFormatted$`Chart` <- NA
