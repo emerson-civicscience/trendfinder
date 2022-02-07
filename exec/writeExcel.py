@@ -12,7 +12,7 @@ import xlsxwriter as xw
 import datetime
 import operator
 
-def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, segment_names_py, file_name_py):
+def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_name_py):
   pandas_df['Stem Group ID'] = pandas_df['Stem Group ID'].fillna(0)
   pandas_df['Banner Group ID'] = pandas_df['Banner Group ID'].fillna(0)
   chart_references_py['Stem Group ID'] = chart_references_py['Stem Group ID'].fillna(0).astype(int)
