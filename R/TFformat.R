@@ -1,4 +1,7 @@
-TFformat <- function(inputFormat, time_period = NULL){
+TFformat <- function(inputFormat, 
+                     time_period = NULL, 
+                     segment_names = segment_names, 
+                     use_default_answer_flag = FALSE){
 
   # inputFormat <- outputWider
 
@@ -195,6 +198,10 @@ TFformat <- function(inputFormat, time_period = NULL){
 
 
   outputFormatted$`Answer Flag` <- as.numeric(outputFormatted$`Stem Answer Flag`) + as.numeric(outputFormatted$`Banner Answer Flag`)
+  
+  if(use_default_answer_flag){
+    outputFormatted$`Answer Flag`[which(is.na(outputFormatted$`Answer Flag`))] <- 2
+  }
 
   outputFormatted$`Stats Flag` <- NA
   outputFormatted$`Chart` <- NA
@@ -210,7 +217,12 @@ TFformat <- function(inputFormat, time_period = NULL){
                 "Banner QID", "Banner Group ID","Banner QText", "Banner Answer ID", "Banner Name")
 
   outputFormatted <- outputFormatted[, c(baseCols, time_period, percentDiffCols, responseCols, totalCols)]
-
+  
+  if(!is.null(segment_names)){
+    outputFormatted$`Stem QText`[which(outputFormatted$`Stem QID` %in% segment_names)] <- outputFormatted$`Stem QID`[which(outputFormatted$`Stem QID` %in% segment_names)]
+    outputFormatted$`Stem Name`[which(outputFormatted$`Stem QID` %in% segment_names)] <- outputFormatted$`Stem QID`[which(outputFormatted$`Stem QID` %in% segment_names)]
+  }
+  
 
   outputFormatted$`Stem QText` <- as.character(outputFormatted$`Stem QText`) %>%
     utf8_normalize(., map_quote = TRUE)

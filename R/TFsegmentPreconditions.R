@@ -1,5 +1,5 @@
 TFsegmentPreconditions <- function(bannerQuestion,
-																	 segmentList,
+																	 segment_list,
 																	 data_start_dates = data_start_dates,
 																	 data_end_dates = data_end_dates,
 																	 geography = USgeography,
@@ -7,9 +7,9 @@ TFsegmentPreconditions <- function(bannerQuestion,
 
 	bannerQuestion <- as.character(bannerQuestion)
 
-	for(segmentLoop in segmentList){
+	for(segment_loop in segment_list){
 
-		segment_and_scheme_name <- segmentLoop$segmentName
+		segment_and_scheme_name <- segment_loop$segmentName
 
 		segmentPreconditions <- rbind(segmentPreconditions,
 																	tibble(start_date = data_start_dates,
@@ -21,9 +21,9 @@ TFsegmentPreconditions <- function(bannerQuestion,
 																				 											bannerQuestion,
 																				 											":day<=",data_end_dates,
 																				 											"^",geography,"^",
-																				 											segmentLoop$segmentDefinition),
+																				 											segment_loop$segmentDefinition),
 																				 weighting_scheme = segment_and_scheme_name,
-																				 weights = list(list(segmentLoop$segmentGender, segmentLoop$segmentAge))
+																				 weights = list(list(segment_loop$segmentGender, segment_loop$segmentAge))
 																				 )
 		)
 

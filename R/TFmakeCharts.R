@@ -1,4 +1,5 @@
 TFmakeCharts <- function(input_TFmakeCharts,
+                         segment_names = NULL,
 												 use_tags = TRUE,
 												 must_plot = NULL,
 												 plot_all = FALSE,
@@ -69,6 +70,7 @@ TFmakeCharts <- function(input_TFmakeCharts,
   data_colnames_wanted_py <- r_to_py(data_colnames_wanted)
   chart_references_py <- r_to_py(ref_table)
   file_name_py <- r_to_py(file_name)
+  segment_names_py <- r_to_py(segment_names)
 
   # write.table(dt, file=paste0('~/TrendFinder/Outputs/2022-01-05/dt 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
   # write.table(ref_table, file=paste0('~/TrendFinder/Outputs/2022-01-05/ref_table 2022-01-05.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
@@ -86,6 +88,12 @@ TFmakeCharts <- function(input_TFmakeCharts,
              data_colnames_wanted_py,
              chart_references_py,
              file_name_py)
+  
+  # writeExcel(pandas_df,
+  #            data_colnames_wanted_py,
+  #            chart_references_py,
+  #            segment_names_py,
+  #            file_name_py)
 
   fileCopyStatus <- file.copy(from = file.path(getwd(), file_name),
                               to   = file.path(outputFilePathMaker(), file_name))
