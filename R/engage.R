@@ -62,23 +62,31 @@ engage <- function(bi.user = NULL,
 	outputFilePath <- outputFilePathMaker()
 
 	if(!is.null(crosstab_input)){
-		crosstabQuestionList <- c(unique(crosstab_input$stem), unique(crosstab_input$banner)) %>%
-			unique(.) %>%
-			sort(.)
-		biggestCrosstabQ <- max(crosstabQuestionList)
+	  
+	  crosstabStemList <- crosstab_input[, c("stem", "weight")]
+	  colnames(crosstabStemList) <- colnames(questionList)
+	  crosstabBannerList <- crosstab_input[, c("banner", "weight")]
+	  crosstabQuestionList <- rbind(crosstabStemList, crosstabBannerList) %>%
+	    .[!duplicated(.), ] 
+		
 	}
 
 	# If no questions are specified for topline results but topline results are requested, create topline list of all
 	# unique questions in crosstab input.
 	if(is.null(questionList)){
 		if(!is.null(crosstab_input)){
-			biggestQ <- biggestCrosstabQ
 			questionList <- crosstabQuestionList
 		} else{
 			print("You don\'t have a topline list or a crosstab table/tibble to input.")
 			stop()
 		}
+	} else{
+	  questionList <- rbind(questionList, crosstabQuestionList) %>%
+	    .[!duplicated(.), ] %>%
+	    arrange(., banner)
 	}
+	
+	
 
 
 
@@ -358,25 +366,29 @@ engage <- function(bi.user = NULL,
 
 	# outputWider <- TFwider(all_results)
 	outputFormatted <- TFwider(all_results) %>%
-		TFformat(., time_period = time_period, segment_names = segment_names, use_default_answer_flag = use_default_answer_flag)
+	  TFformat(., time_period = time_period, segment_names = segment_names, use_default_answer_flag = use_default_answer_flag)
 	
 	if(run_stats){
-	  outputFormatted <- TFstats(., cutoff_stats_flags = cutoff_stats_flags,
-	                             max_chart_return = max_chart_return,
-	                             max_chart_iterate = max_chart_iterate)
+	  outputStats <- TFstats(outputFormatted, 
+	                         cutoff_stats_flags = cutoff_stats_flags,
+	                         max_chart_return = max_chart_return,
+	                         max_chart_iterate = max_chart_iterate)
+	  
+	  input_TFmakeCharts <- outputStats
+	} else{
+	  input_TFmakeCharts <- outputFormatted
 	}
-		
+	
 	# View(outputFormatted)
-
+	
 	# write.table(outputFormatted, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 	# write.table(outputResults, file=paste0('~/TrendFinder/Outputs/2021-11-09/outputResults.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
-
-	TFmakeCharts(outputFormatted,
+	
+	TFmakeCharts(input_TFmakeCharts,
 	             segment_names = segment_names,
-							 use_tags = use_tags,
-							 must_plot = must_plot,
-							 plot_all = plot_all,
-							 python_loc = python_loc)
-
+	             use_tags = use_tags,
+	             must_plot = must_plot,
+	             plot_all = plot_all,
+	             python_loc = python_loc)
 
 	}

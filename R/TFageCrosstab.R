@@ -7,7 +7,7 @@ TFageCrosstab <- function(input_row){
   # end_date <- as.Date(input_row[3])
 
   crosstabPrecondition <- paste0(banner_question, ":day>=", start_date,"^",
-                                 banner_question,":day<=", end_date,
+                                 banner_question,":day<", end_date,
                                  "^484=",c("1536", "1537"))
 
   crosstab_age <- lapply(crosstabPrecondition, crosstabAgeTable,
