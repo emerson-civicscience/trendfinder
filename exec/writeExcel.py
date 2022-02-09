@@ -89,7 +89,6 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
     worksheet.set_zoom(80)
     
   sheet_number = 0
-  
   # Uses the rows of chart_references_py (table passed from R) to iterate through
   for indices, row in chart_references_py.iterrows():   
     

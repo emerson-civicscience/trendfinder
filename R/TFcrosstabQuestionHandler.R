@@ -8,6 +8,20 @@ TFcrosstabQuestionHandler <- function(manual_crosstab_input = NULL,
 	if(!is.null(manual_crosstab_input)){
 		if(ncol(manual_crosstab_input) == 2){
 			colnames(manual_crosstab_input) <- c('stem', 'banner')
+			if(is.null(weighting_schemes)){
+			  manual_crosstab_input$weight <- NA
+			} else{
+			  temp_crosstab <- manual_crosstab_input
+			  for(i in seq_along(weighting_schemes)){
+			    if(i == 1){
+			      manual_crosstab_input$weight <- weighting_schemes[i]
+			    } else{
+			      temp_crosstab$weight <- weighting_schemes[i]
+			      manual_crosstab_input <- rbind(manual_crosstab_input, temp_crosstab)
+			    }
+			  }
+			}
+			manual_crosstab_input$weight <- weighting_schemes
 		} else if(ncol(manual_crosstab_input) == 3){
 			colnames(manual_crosstab_input) <- c('stem', 'banner', 'weight')
 		}
@@ -40,13 +54,15 @@ TFcrosstabQuestionHandler <- function(manual_crosstab_input = NULL,
   	crosstab_input <- manual_crosstab_input
   }
 
-	crosstab_input <- crosstab_input[!duplicated(crosstab_input), ]
-	
-	same_stem_and_banner <- which(crosstab_input$stem == crosstab_input$banner)
-	
-	crosstab_input <- crosstab_input[-same_stem_and_banner, ]
-	
-	row.names(crosstab_input) <- NULL
+  crosstab_input <- crosstab_input[!duplicated(crosstab_input), ]
+  
+  same_stem_and_banner <- which(crosstab_input$stem == crosstab_input$banner)
+  
+  if(length(same_stem_and_banner) > 0){
+    crosstab_input <- crosstab_input[-same_stem_and_banner, ]
+  }
+  
+  row.names(crosstab_input) <- NULL
 	
   return(crosstab_input)
 
