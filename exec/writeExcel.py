@@ -101,7 +101,7 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
     # skips finding the question text for the stem
     # Assign "Stem" to 'Stem QID'to parse the series info for the makeChart function
     
-    if stem_q != banner_q and stem_q != '0':
+    if (stem_q != banner_q and stem_q != '0') or type(stem_q) == str:
       stem_df = pandas_df[pandas_df["Stem QText"] == "Topline"]
       stem_df = stem_df[stem_df["Banner QID"] == stem_q]
       stem_df = stem_df[stem_df["Banner Group ID"] == stem_group]
@@ -117,7 +117,10 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
       if stem_df.shape[0] != '0':
         stem_df = stem_df.reset_index(drop=True, inplace=False)
         stem_df['Stem QID'] = "Stem"
-        plot_topline_2 = True
+        if stem_q != banner_q:
+          plot_topline_2 = True
+        else:
+          plot_topline_2 = False
       else: 
         plot_topline_2 = False
     else:
@@ -215,24 +218,22 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
       for crosstab_1_loop in banner_answers:
         crosstab_1_series = combined_df_excel[combined_df_excel['Banner Answer ID'] == crosstab_1_loop].index.tolist()
         
-        if len(combined_df_excel.index) != len(topline_1_series):
-          chart_number += 1
-          chart_row += 25
-          category_name_row = str(first_table_row+2)
-          chart_title_crosstab_1_formula = '=&" cut by "&' + stem_qtext_location
-          makeChart(chart_title_crosstab_1_formula, crosstab_1_series, category_name_row)
+        chart_number += 1
+        chart_row += 25
+        category_name_row = str(first_table_row+2)
+        chart_title_crosstab_1_formula = '=&" cut by "&' + stem_qtext_location
+        makeChart(chart_title_crosstab_1_formula, crosstab_1_series, category_name_row)
           
       chart_row = 2
       chart_col = 2	
           
       for crosstab_2_loop in stem_answers:
         crosstab_2_series = crosstab_subset[crosstab_subset['Stem Answer ID'] == crosstab_2_loop].index.tolist()
-        if topline_1_series != crosstab_2_series:
-          chart_number += 1
-          chart_row += 25
-          category_name_row = str(first_table_row+3)
-          chart_title_crosstab_2_formula = '=' + banner_qtext_location + '&" cut by "&'
-          makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
+        chart_number += 1
+        chart_row += 25
+        category_name_row = str(first_table_row+3)
+        chart_title_crosstab_2_formula = '=' + banner_qtext_location + '&" cut by "&'
+        makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
               
   writer.save()
 

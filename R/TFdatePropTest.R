@@ -10,11 +10,19 @@ TFdatePropTest <- function(unique_input_row,
 		.[.$`Stem Group ID` == unique_input_row[3], ] %>%
 		.[.$`Banner Answer ID` == unique_input_row[4], ] %>%
 		.[.$`Banner Group ID` == unique_input_row[5], ]
-
+	
+	remove_rows <- c(which(is.na(date_rows$`Weighting Scheme`)), 
+	                 which(is.na(date_rows$`Stem Answer ID`)),
+	                 which(is.na(date_rows$`Banner Answer ID`)),
+	                 which(is.na(date_rows$`response count`)),
+	                 which(is.na(date_rows$`total responses`)))
+	
+	if(length(remove_rows) > 0){
+	  date_rows <- date_rows[-remove_rows, ]
+	}
+	
 	compare_against <- date_rows[date_rows$start_date == start_and_end_dates$start_date[1], ] %>%
 		.[.$end_date == start_and_end_dates$end_date[1]]
-
-
 
 	for(j in 2:total_date_periods){
 		# Match the "to" and "against" values to each other here and run through prop test function
@@ -59,5 +67,4 @@ TFdatePropTest <- function(unique_input_row,
 		}
 
 	}
-	return(date_sig_table)
 }

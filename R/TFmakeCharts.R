@@ -17,6 +17,18 @@ TFmakeCharts <- function(input_TFmakeCharts,
 		colnames(dt) <- gsub("Tag", "Stem Tag", colnames(dt))
 		dt <- left_join(dt, tag_table, by = c("Banner Answer ID" = "Answer ID"))
 		colnames(dt) <- gsub("^Tag", "Banner Tag", colnames(dt))
+		
+		dt_stem <- dt
+		dt_stem$`Stem QID`[which(!is.na(dt_stem$`Stem Tag`))] <- dt_stem$`Stem Tag`[which(!is.na(dt_stem$`Stem Tag`))]
+		dt_stem$`Stem Group ID`[which(!is.na(dt_stem$`Stem Tag`))] <- 0
+		dt_stem$`Stem QText`[which(!is.na(dt_stem$`Stem Tag`))] <- dt_stem$`Stem Tag`[which(!is.na(dt_stem$`Stem Tag`))]
+		dt_stem$`Stem Name`[which(!is.na(dt_stem$`Stem Tag`))] <- dt_stem$`Stem Tag Label`[which(!is.na(dt_stem$`Stem Tag`))]
+		
+		dt_banner <- dt
+		dt_banner$`Banner QID`[which(!is.na(dt_banner$`Banner Tag`))] <- dt_banner$`Banner Tag`[which(!is.na(dt_banner$`Banner Tag`))]
+		dt_banner$`Banner Group ID`[which(!is.na(dt_banner$`Banner Tag`))] <- 0
+		dt_banner$`Banner QText`[which(!is.na(dt_banner$`Banner Tag`))] <- dt_banner$`Banner Tag`[which(!is.na(dt_banner$`Banner Tag`))]
+		dt_banner$`Banner Name`[which(!is.na(dt_banner$`Banner Tag`))] <- dt_banner$`Banner Tag Label`[which(!is.na(dt_banner$`Banner Tag`))]
 
 		dt$`Stem QID`[which(!is.na(dt$`Stem Tag`))] <- dt$`Stem Tag`[which(!is.na(dt$`Stem Tag`))]
 		dt$`Stem Group ID`[which(!is.na(dt$`Stem Tag`))] <- 0
@@ -26,6 +38,8 @@ TFmakeCharts <- function(input_TFmakeCharts,
 		dt$`Banner Group ID`[which(!is.na(dt$`Banner Tag`))] <- 0
 		dt$`Banner QText`[which(!is.na(dt$`Banner Tag`))] <- dt$`Banner Tag`[which(!is.na(dt$`Banner Tag`))]
 		dt$`Banner Name`[which(!is.na(dt$`Banner Tag`))] <- dt$`Banner Tag Label`[which(!is.na(dt$`Banner Tag`))]
+		
+		dt <- rbind(dt_stem, dt_banner, dt)
 
 		dt <- setorder(dt,
 		               'Stem Group ID', 'Stem QID', 'Stem Tag Order',
