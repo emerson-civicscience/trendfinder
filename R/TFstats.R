@@ -10,6 +10,14 @@ TFstats <- function(input_stats,
   input_stats$`Banner Group ID`[which(is.na(input_stats$`Banner Group ID`))] <- 0
 
   input_cols <- colnames(input_stats)
+  
+  NA_stem_QID_rows <- which(is.na(input_stats$`Stem QID`))
+  NA_banner_QID_rows <- which(is.na(input_stats$`Banner QID`))
+  NA_rows <- c(NA_stem_QID_rows, NA_banner_QID_rows)
+  
+  if(length(NA_rows) > 0){
+    input_stats <- input_stats[-NA_rows, ]
+  }
 
   id_colnames <- c("Weighting Scheme", "Stem Answer ID", "Stem Group ID", "Banner Answer ID", "Banner Group ID")
   unique_input_rows <- input_stats[, id_colnames] %>% transpose() %>% as.list()
@@ -37,7 +45,8 @@ TFstats <- function(input_stats,
                                   names_sep = " - ",
                                   values_to = "total responses")
 
-  df <- merge(df_response_longer, df_total_longer, by = c(id_colnames, names_to_def))
+  df <- merge(df_response_longer, df_total_longer, by = c(id_colnames, names_to_def)) %>%
+    .[!duplicated(.), ]
 
   stems <-  df[, c('Weighting Scheme', 'Stem Answer ID', 'Stem Group ID')] %>%
     .[!duplicated(.), ]

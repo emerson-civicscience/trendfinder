@@ -1,12 +1,12 @@
-crosstabTable <- function (precondition = NULL,
-                           question.ids = NULL,
-                           row.answer.group.ids = NULL,
-                           row.answer.group.names = NULL,
-                           col.answer.group.ids = NULL,
-                           col.answer.group.names = NULL,
-                           weights = NULL,
-                           access.key = CS_ACCESS_KEY,
-                           secret.key = CS_SECRET_KEY)
+  crosstabTable <- function (precondition = NULL,
+                             question.ids = NULL,
+                             row.answer.group.ids = NULL,
+                             row.answer.group.names = NULL,
+                             col.answer.group.ids = NULL,
+                             col.answer.group.names = NULL,
+                             weights = NULL,
+                             access.key = CS_ACCESS_KEY,
+                             secret.key = CS_SECRET_KEY)
 
   ### Mostly stolen from cs_create_crosstab_barchart
 
@@ -36,6 +36,11 @@ crosstabTable <- function (precondition = NULL,
 
   tryCatch( {
 
+    
+    if(question.ids[1] == question.ids[2]){
+      'y'+'z' # Force error to send to `error = function(e)`
+    }
+    
     CGX <- cs_get_crosstab(question.ids, precondition, access.key = access.key,
                            secret.key = secret.key)
 
@@ -49,12 +54,13 @@ crosstabTable <- function (precondition = NULL,
         dplyr::ungroup() %>%
         dplyr::arrange(text.1,
                        text.2)
-
-      data <- cs_ccb_ag(data)
-
-
-
-
+      
+      data <- cs_ccb_ag(data,
+                        row.answer.group.ids,
+                        row.answer.group.names,
+                        col.answer.group.ids,
+                        col.answer.group.names)
+      
     } else {
       data <- cs_weight_crosstab_data(CGX$data, weights, cross = TRUE)
 
