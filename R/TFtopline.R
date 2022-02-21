@@ -43,6 +43,13 @@ TFtopline <- function(toplineCondition){
     do.call(rbind, .)
 
   toplineResults$weighting_scheme <- scheme_name
+  
+  current_time <- Sys.time()
+  if(minute(current_time) == 0){
+    if(second(current_time) < 5){
+      print("TFtopline: question ", toplineQuestion)
+    }
+  }
 
   return(toplineResults)
 }

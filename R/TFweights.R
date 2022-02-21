@@ -20,8 +20,7 @@ TFweights <- function(weighting_schemes,
 	if(!is.null(weighting_dict_addition)){
 		weighting_dict <- rbind(weighting_dict, weighting_dict_addition) %>%
 			as_tibble()
-
-		usethis::use_data(weighting_dict, overwrite = TRUE)
-
 	}
+  
+  return(weighting_dict)
 }

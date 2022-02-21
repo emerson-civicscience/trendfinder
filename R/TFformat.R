@@ -1,7 +1,8 @@
 TFformat <- function(inputFormat, 
                      time_period = NULL, 
                      segment_names = segment_names, 
-                     use_default_answer_flag = FALSE){
+                     use_default_answer_flag = FALSE,
+                     batch_time = NULL){
 
   # inputFormat <- outputWider
 
@@ -239,7 +240,7 @@ TFformat <- function(inputFormat,
   outputFormattedName <- outputName("Output - Responses - Formatted", batch_time = batch_time)
   saveRDS(outputFormatted, file = outputFormattedName)
 
-  write.table(outputFormatted, file=paste0(outputFormattedName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
+  # write.table(outputFormatted, file=paste0(outputFormattedName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
   return(outputFormatted)
 

@@ -1,6 +1,7 @@
 TFcrosstab <- function(crosstabCondition,
-                       data_start_dates,
-                       data_end_dates){
+                       # data_start_dates,
+                       # data_end_dates,
+                       weighting_dict = weighting_dict){
 
   stemQuestion <- as.numeric(crosstabCondition[1])
   bannerQuestion <- as.numeric(crosstabCondition[2])
@@ -28,6 +29,7 @@ TFcrosstab <- function(crosstabCondition,
   crosstabPrecondition <- crosstabCondition[3]
 
   scheme_name <- as.character(crosstabCondition[4])
+  
   weights <- weighting_dict[which(weighting_dict$scheme_name == scheme_name),2][[1]][[1]]
 
   age_gender_precondition <- TFageGenderPrecondition(weights)
@@ -51,7 +53,16 @@ TFcrosstab <- function(crosstabCondition,
   # for their 'stem' value, convert this to a character before returning
 
   crosstabResults$weighting_scheme <- scheme_name
-
+  
+  # Print occasionally if still working?
+  
+  current_time <- Sys.time()
+  if(minute(current_time) == 0){
+    if(second(current_time) < 5){
+      print("TFcrosstab: questions ", stemQuestion, " & ", bannerQuestion, ", weighting_scheme ", scheme_name)
+    }
+  }
+  
   return(crosstabResults)
 
 }
