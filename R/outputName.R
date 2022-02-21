@@ -5,9 +5,8 @@ outputName <- function(outputType = NULL,
   outputFilePath <- outputFilePathMaker()
 
   batch_time_file_name <- batch_time %>%
-    as.character() %>%
-    str_replace_all(':', '_') %>%
-    paste0(., " EDT")
+    format(.,usetz = TRUE) %>%
+    str_replace_all(':', '_')
 
   if(is.null(batch_time)){
     return(file.path(outputFilePath,

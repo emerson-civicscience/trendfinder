@@ -29,9 +29,9 @@ engage <- function(bi.user = NULL,
 	banner_questions <- unique(banner_questions)
 	crosstab_input <- crosstab_input[!duplicated(crosstab_input), ]
 
-	TFweights(weighting_schemes,
-						bi.user = bi.user,
-						bi.password = bi.password)
+	weighting_dict <- TFweights(weighting_schemes,
+	                            bi.user = bi.user,
+	                            bi.password = bi.password)
 
 	if(!exists('data_end_dates') | is.null(data_end_dates)){
 		data_end_dates <- TFdateHandler(data_start_dates)
@@ -148,8 +148,8 @@ engage <- function(bi.user = NULL,
 																 mc.cores = detectCores()) %>%
 				rbindlist()
 
-			fileName <- outputName("Topline Results", batch_time = batch_time_char)
-			saveRDS(toplineResults, paste0(fileName, ".rds"))
+			# fileName <- outputName("Topline Results", batch_time = batch_time_char)
+			# saveRDS(toplineResults, paste0(fileName, ".rds"))
 
 			outputResults <- toplineResults
 		}
@@ -185,7 +185,7 @@ engage <- function(bi.user = NULL,
 
 		weightingDictSegments <- tibble(weighting_scheme = segmentConditions$weighting_scheme, value = segmentConditions$weights) %>%
 			unique()
-		# packageVersion('tibble') # Currently using 2.1.3 and get ttps://github.com/tidyverse/tibble/issues/798
+		# packageVersion('tibble') # Currently using 2.1.3 and get https://github.com/tidyverse/tibble/issues/798
 
 		segmentConditionsDeduped <- anti_join(segmentConditions, trendfinder_history, by = anti_join_columns)
 
@@ -271,14 +271,15 @@ engage <- function(bi.user = NULL,
 				as.list()
 
 			crosstabResults <- mclapply(crosstabConditionsList, TFcrosstab,
-																	data_start_dates = data_start_dates,
-																	data_end_dates = data_end_dates,
+																	# data_start_dates = data_start_dates,
+																	# data_end_dates = data_end_dates,
+																	weighting_dict = weighting_dict,
 																	mc.cores = detectCores()) %>%
 				rbindlist()
 		}
 
-		fileName <- outputName("Crosstab Results", batch_time = batch_time_char)
-		saveRDS(crosstabResults, paste0(fileName, ".rds"))
+		# fileName <- outputName("Crosstab Results", batch_time = batch_time_char)
+		# saveRDS(crosstabResults, paste0(fileName, ".rds"))
 
 		crosstabResultsChar <- crosstabResults
 
@@ -309,7 +310,7 @@ engage <- function(bi.user = NULL,
 
 		outputResults <- TFoutputResultsFormat(outputResults, batch_time = batch_time_char)
 		# write.table(outputResults, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
-		saveRDS(outputResults, paste0(fileName, ".rds"))
+		# saveRDS(outputResults, paste0(fileName, ".rds"))
 	}
 
 	trendfinder_results <- readRDS('~/TrendFinder/Outputs/trendfinder_results.rds')
@@ -347,7 +348,7 @@ engage <- function(bi.user = NULL,
 
 	all_results <- TFoutputResultsFormat(all_results, batch_time = batch_time_char)
 	fileName <- outputName("All Results", batch_time = batch_time_char)
-	saveRDS(all_results, paste0(fileName, ".rds"))
+	# saveRDS(all_results, paste0(fileName, ".rds"))
 
 	batch_metadata <- rbind(readRDS('~/TrendFinder/Outputs/batch_metadata.rds'), batch_metadata_update)
 	saveRDS(batch_metadata, '~/TrendFinder/Outputs/batch_metadata.rds')
@@ -366,7 +367,7 @@ engage <- function(bi.user = NULL,
 
 	# outputWider <- TFwider(all_results)
 	outputFormatted <- TFwider(all_results) %>%
-	  TFformat(., time_period = time_period, segment_names = segment_names, use_default_answer_flag = use_default_answer_flag)
+	  TFformat(., time_period = time_period, segment_names = segment_names, use_default_answer_flag = use_default_answer_flag, batch_time = batch_time_char)
 	
 	if(run_stats){
 	  outputStats <- TFstats(outputFormatted, 

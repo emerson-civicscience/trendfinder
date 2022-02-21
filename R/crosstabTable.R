@@ -1,4 +1,4 @@
-  crosstabTable <- function (precondition = NULL,
+crosstabTable <- function (precondition = NULL,
                              question.ids = NULL,
                              row.answer.group.ids = NULL,
                              row.answer.group.names = NULL,
