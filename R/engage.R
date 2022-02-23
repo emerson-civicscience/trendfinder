@@ -126,7 +126,7 @@ engage <- function(bi.user = NULL,
 		### If the table trendfinder_history has a matching row for start_date, end_date, weights, stem, and banner,
 		### it is excluded with the anti_join() function
 
-		toplineConditionsDeduped <- anti_join(toplineConditions, trendfinder_history, by=anti_join_columns)
+		toplineConditionsDeduped <- anti_join(toplineConditions, trendfinder_history, by=all_of(anti_join_columns))
 
 		if(nrow(toplineConditionsDeduped) == 0){
 			outputResults <- NULL
@@ -187,11 +187,14 @@ engage <- function(bi.user = NULL,
 			unique()
 		# packageVersion('tibble') # Currently using 2.1.3 and get https://github.com/tidyverse/tibble/issues/798
 
-		segmentConditionsDeduped <- anti_join(segmentConditions, trendfinder_history, by = anti_join_columns)
+		segmentConditionsDeduped <- anti_join(segmentConditions, trendfinder_history, by = all_of(anti_join_columns))
 
 		if(nrow(segmentConditionsDeduped) == 0){
 			segmentResults <- NULL
 		} else{
+		  
+		  keep_columns <- colnames(trendfinder_history_update)
+		  trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, ..keep_columns])
 
 			segmentConditionsDedupedSubset <- segmentConditionsDeduped %>% select(., all_of(condition_columns))
 
@@ -211,18 +214,17 @@ engage <- function(bi.user = NULL,
 			segmentConditionsDeduped <- as.data.frame(segmentConditionsDeduped)
 
 			segmentConditionsDeduped <- segmentConditionsDeduped[, which(colnames(segmentConditionsDeduped) %in% anti_join_columns)]
-			trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped)
-
+			
 		}
 
-		fileName <- outputName("Segment Results", batch_time = batch_time_char)
-		saveRDS(segmentResults, paste0(fileName, ".rds"))
+		# fileName <- outputName("Segment Results", batch_time = batch_time_char)
+		# saveRDS(segmentResults, paste0(fileName, ".rds"))
 
 		segmentResultsChar <- segmentResults
 		segmentResultsChar$data.banner <- as.character(segmentResults$data.banner)
-		segmentResultsChar$batch <- batch_time_char
-		colnames(segmentResultsChar)[grep('data.', colnames(segmentResultsChar))] <- gsub('data.', '', colnames(segmentResultsChar)[grep('data', colnames(segmentResultsChar))])
-		colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))] <- gsub('response.count', 'response_count', colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))])
+		# segmentResultsChar$batch <- batch_time_char
+		# colnames(segmentResultsChar)[grep('data.', colnames(segmentResultsChar))] <- gsub('data.', '', colnames(segmentResultsChar)[grep('data', colnames(segmentResultsChar))])
+		# colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))] <- gsub('response.count', 'response_count', colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))])
 
 		outputResults <- rbind(outputResults, segmentResultsChar)
 		segmentConditions <- segmentConditions %>% select(anti_join_columns)
@@ -255,7 +257,7 @@ engage <- function(bi.user = NULL,
 		### Remove rows based on prior results run by TrendFinder
 		### See comment just after toplineConditions (above) for more info
 
-		crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=anti_join_columns)
+		crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=all_of(anti_join_columns))
 
 		if(nrow(crosstabConditionsDeduped) == 0){
 			crosstabResults <- NULL
@@ -302,7 +304,7 @@ engage <- function(bi.user = NULL,
 	output_end_time <- Sys.time()
 	elapsed_time <- output_end_time - batch_time
 	elapsed_time # For informational/diagnostic use
-	fileName <- outputName("Output Results", batch_time = batch_time_char)
+	# fileName <- outputName("Output Results", batch_time = batch_time_char)
 	
 
 	if(!is.null(outputResults)){
@@ -340,7 +342,7 @@ engage <- function(bi.user = NULL,
 	allConditionsAnswers$banner <- allConditionsAnswers$`Answer ID`
 	allConditionsAnswers <- allConditionsAnswers[, ..anti_join_columns]
 
-	all_results <- left_join(allConditionsAnswers, trendfinder_results, by = anti_join_columns)
+	all_results <- left_join(allConditionsAnswers, trendfinder_results, by = all_of(anti_join_columns))
 
 	# This is here to remove joins from dataKey that were not actually calculated
 	# When answer groupings in the calculation phase are done away with, this won't be necessary
