@@ -125,6 +125,7 @@ engage <- function(bi.user = NULL,
 		toplineConditionsDeduped <- anti_join(toplineConditions, trendfinder_history, by=all_of(anti_join_columns))
 
 		if(nrow(toplineConditionsDeduped) == 0){
+		  toplineResults <- NULL
 			outputResults <- NULL
 			trendfinder_history_update <- NULL
 			allConditions <- toplineConditions
@@ -186,7 +187,7 @@ engage <- function(bi.user = NULL,
 		segmentConditionsDeduped <- anti_join(segmentConditions, trendfinder_history, by = all_of(anti_join_columns))
 
 		if(nrow(segmentConditionsDeduped) == 0){
-			segmentResults <- NULL
+			segmentResultsChar <- NULL
 		} else{
 		  
 		  keep_columns <- colnames(trendfinder_history_update)
@@ -211,13 +212,15 @@ engage <- function(bi.user = NULL,
 
 			segmentConditionsDeduped <- segmentConditionsDeduped[, which(colnames(segmentConditionsDeduped) %in% anti_join_columns)]
 			
+			segmentResultsChar <- segmentResults
+			segmentResultsChar$data.banner <- as.character(segmentResults$data.banner)
+			
 		}
 
 		# fileName <- outputName("Segment Results", batch_time = batch_time_char)
 		# saveRDS(segmentResults, paste0(fileName, ".rds"))
 
-		segmentResultsChar <- segmentResults
-		segmentResultsChar$data.banner <- as.character(segmentResults$data.banner)
+		
 		# segmentResultsChar$batch <- batch_time_char
 		# colnames(segmentResultsChar)[grep('data.', colnames(segmentResultsChar))] <- gsub('data.', '', colnames(segmentResultsChar)[grep('data', colnames(segmentResultsChar))])
 		# colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))] <- gsub('response.count', 'response_count', colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))])
