@@ -86,10 +86,6 @@ engage <- function(bi.user = NULL,
 	    arrange(., banner)
 	}
 	
-	
-
-
-
 	trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
 
 	anti_join_columns <- c("start_date", "end_date", "stem", "banner", "weighting_scheme") # Used for matching history with current preconditions
@@ -158,7 +154,7 @@ engage <- function(bi.user = NULL,
 			outputResults$data.banner <- as.character(outputResults$data.banner)
 		}
 
-		allConditions <- toplineConditions %>% select(anti_join_columns)
+		allConditions <- toplineConditions %>% select(all_of(anti_join_columns))
 
 
 	} else{

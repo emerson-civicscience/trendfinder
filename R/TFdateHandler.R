@@ -23,10 +23,11 @@ TFdateHandler <- function(data_start_dates, data_end_dates = NULL, time_period_l
 		data_end_dates <- c(data_end_dates, final_date)
 
 	} else{
+	  data_end_dates <- ymd(data_end_dates)
 		final_date <- ymd(data_end_dates[length(data_end_dates)])
 	}
 
-	if(final_date < today()){
+	if(final_date > today()){
 		data_end_dates[length(data_end_dates)] <- today()+1
 	}
 
