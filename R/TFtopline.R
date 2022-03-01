@@ -47,7 +47,7 @@ TFtopline <- function(toplineCondition){
   current_time <- Sys.time()
   if(minute(current_time) == 0){
     if(second(current_time) < 5){
-      print("TFtopline: question ", toplineQuestion)
+      print(paste0("TFtopline: question ", toplineQuestion))
     }
   }
 

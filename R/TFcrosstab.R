@@ -59,7 +59,7 @@ TFcrosstab <- function(crosstabCondition,
   current_time <- Sys.time()
   if(minute(current_time) == 0){
     if(second(current_time) < 5){
-      print("TFcrosstab: questions ", stemQuestion, " & ", bannerQuestion, ", weighting_scheme ", scheme_name)
+      print(paste0("TFcrosstab: questions ", stemQuestion, " & ", bannerQuestion, ", weighting_scheme: ", scheme_name))
     }
   }
   

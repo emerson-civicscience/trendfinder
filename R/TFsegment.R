@@ -35,7 +35,7 @@ TFsegment <- function(segmentCondition, weightingDictSegments){
 	current_time <- Sys.time()
 	if(minute(current_time) == 0){
 	  if(second(current_time) < 5){
-	    print("TFsegment: question ", bannerQuestion, ", segment ", scheme_name)
+	    print(paste0("TFsegment: question ", bannerQuestion, ", segment: ", scheme_name))
 	  }
 	}
 
