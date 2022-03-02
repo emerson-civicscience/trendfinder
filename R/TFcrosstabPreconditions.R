@@ -1,5 +1,6 @@
 TFcrosstabPreconditions <- function(crosstabRow,
-																		data_start_dates = data_start_dates,
+                                    segment_list = NULL,
+                                    data_start_dates = data_start_dates,
 																		data_end_dates = data_end_dates,
 																		geography = USgeography,
 																		useStemAndBannerPrecondition = NULL,
@@ -9,10 +10,10 @@ TFcrosstabPreconditions <- function(crosstabRow,
 	bannerQuestion <- as.character(crosstabRow[2])
 	scheme_name <- as.character(crosstabRow[3])
 
-
+	
 	# It's default to use the banner precondition because it's generally more useful, but in some cases it might be better
 	# to date the crosstab by the stem or both. This code and the crosstabTable function do not currently support different
-	# dates for the stem and banner. They could, but the use cases seem limited at this time.
+  # dates for the stem and banner. They could, but the use cases seem limited at this time.
 	if(is.null(useStemAndBannerPrecondition)){
 		if(is.null(useStemPrecondition)){
 			crosstabPreconditions <- tibble(start_date = data_start_dates,
@@ -58,8 +59,6 @@ TFcrosstabPreconditions <- function(crosstabRow,
 																		weighting_scheme = scheme_name)
 	}
 
-
-
-	return(crosstabPreconditions)
+  return(crosstabPreconditions)
 
 }

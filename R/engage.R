@@ -6,6 +6,7 @@ engage <- function(bi.user = NULL,
 									 banner_questions = NULL,
 									 segment_list = NULL,
 									 segment_names = NULL,
+									 segment_crosstabs = FALSE,
 									 crosstab_input = NULL,
 									 data_start_dates = "2021-01-01",
 									 data_end_dates = NULL,
@@ -193,7 +194,7 @@ engage <- function(bi.user = NULL,
 		  keep_columns <- colnames(trendfinder_history_update)
 		  trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, ..keep_columns])
 
-			segmentConditionsDedupedSubset <- segmentConditionsDeduped %>% select(., all_of(condition_columns))
+			segmentConditionsDedupedSubset <- segmentConditionsDeduped[ , ..condition_columns]
 
 			### Remove rows based on prior results run by TrendFinder
 			### See comment just after toplineConditions (above) for more info
@@ -210,7 +211,7 @@ engage <- function(bi.user = NULL,
 			
 			segmentConditionsDeduped <- as.data.frame(segmentConditionsDeduped)
 
-			segmentConditionsDeduped <- segmentConditionsDeduped[, which(colnames(segmentConditionsDeduped) %in% anti_join_columns)]
+			segmentConditionsDeduped <- segmentConditionsDeduped[, anti_join_columns]
 			
 			segmentResultsChar <- segmentResults
 			segmentResultsChar$data.banner <- as.character(segmentResults$data.banner)
@@ -226,8 +227,9 @@ engage <- function(bi.user = NULL,
 		# colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))] <- gsub('response.count', 'response_count', colnames(segmentResultsChar)[grep('response.count', colnames(segmentResultsChar))])
 
 		outputResults <- rbind(outputResults, segmentResultsChar)
-		segmentConditions <- segmentConditions %>% select(anti_join_columns)
-		allConditions <- rbind(allConditions, segmentConditions)
+		
+		segment_conditions_for_all <- segmentConditions[, ..anti_join_columns]
+		allConditions <- rbind(allConditions, segment_conditions_for_all)
 
 	}
 
@@ -247,17 +249,25 @@ engage <- function(bi.user = NULL,
 			as.list()
 
 		crosstabConditions <- mclapply(crosstabRows, TFcrosstabPreconditions,
+		                               segment_list = segment_list,
 																	 data_start_dates = data_start_dates,
 																	 data_end_dates = data_end_dates,
 																	 mc.cores = detectCores()) %>%
 			rbindlist()
 
-
 		### Remove rows based on prior results run by TrendFinder
 		### See comment just after toplineConditions (above) for more info
-
-		crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=all_of(anti_join_columns))
-
+		if(segment_crosstabs){
+		  if(!is.null(segment_list)){
+		    segment_crosstab_join <- left_join(crosstabConditions[, c("start_date", "end_date", "stem", "banner")], 
+		                                       segmentConditions[, c("start_date", "end_date", "banner", "precondition", "weighting_scheme")], 
+		                                       by = c("start_date", "end_date", "banner"))
+		    crosstabConditions <- rbind(crosstabConditions, segment_crosstab_join)
+		  }
+		}
+		
+    crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=all_of(anti_join_columns))
+				
 		if(nrow(crosstabConditionsDeduped) == 0){
 			crosstabResults <- NULL
 		} else{
