@@ -65,6 +65,6 @@ TFdatePropTest <- function(unique_input_row,
 		} else{
 			date_sig_table <- merge(date_sig_table, compare_to, by = id_colnames)
 		}
-
 	}
+	return(date_sig_table)
 }

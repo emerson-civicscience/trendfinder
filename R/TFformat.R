@@ -238,7 +238,7 @@ TFformat <- function(inputFormat,
   outputFormatted <- outputFormatted[!duplicated(outputFormatted), ] # Just in case
 
   outputFormattedName <- outputName("Output - Responses - Formatted", batch_time = batch_time)
-  saveRDS(outputFormatted, file = outputFormattedName)
+  saveRDS(outputFormatted, file = paste0(outputFormattedName, ".rds"))
 
   # write.table(outputFormatted, file=paste0(outputFormattedName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 

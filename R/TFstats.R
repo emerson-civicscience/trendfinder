@@ -1,4 +1,5 @@
 TFstats <- function(input_stats,
+                    batch_time = NULL,
                     cutoff_stats_flags,
                     max_chart_return,
                     max_chart_iterate,
@@ -165,14 +166,14 @@ TFstats <- function(input_stats,
   output_stats <- output_stats[ , -which(colnames(output_stats) == 'decile')]
 
 
-  if(exists('batch_time')){
+  if(!is.null(batch_time)){
     output_statsName <- outputName("Output - Responses - Formatted with Stats", batch_time = batch_time)
 
   } else{
     output_statsName <- outputName("Output - Responses - Formatted with Stats")
   }
 
-  saveRDS(output_stats, file = output_statsName)
+  saveRDS(output_stats, file = paste0(output_statsName, ".rds"))
 
   # write.table(output_stats, file=paste0(output_statsName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 
