@@ -25,6 +25,8 @@ engage <- function(bi.user = NULL,
 									 must_plot = NULL,
 									 plot_all = FALSE,
 									 python_loc = NULL){
+  
+  batch_time <- Sys.time()  # This iteration of TrendFinder relies on the concept of batches to organize/audit data
 
 	stem_questions <- unique(stem_questions)
 	banner_questions <- unique(banner_questions)
@@ -61,6 +63,9 @@ engage <- function(bi.user = NULL,
 	### will create a subfolder called "Outputs" in the fileLocation directory
 	# outputDate <- today() - 1 # The default date in outputFilePathMaker is today()
 	outputFilePath <- outputFilePathMaker()
+	
+	image_file_name <- file.path(outputFilePath, paste0("TrendFinder Environment ", batch_time, ".RData"))
+	save.image(file=image_file_name)
 
 	if(!is.null(crosstab_input)){
 	  
@@ -92,16 +97,7 @@ engage <- function(bi.user = NULL,
 	anti_join_columns <- c("start_date", "end_date", "stem", "banner", "weighting_scheme") # Used for matching history with current preconditions
 	condition_columns <- c("banner", "precondition", "weighting_scheme") # Used to remove unwanted columns from precondition tables
 
-	batch_time <- Sys.time()  # This iteration of TrendFinder relies on the concept of batches to organize/audit data
 	batch_time_char <- format(batch_time, "%Y-%m-%d %H:%M:%S %Z")
-	batch_metadata_update <- tibble(batch = batch_time_char,
-																	weighting_schemes = list(weighting_schemes),
-																	stem_questions = list(stem_questions),
-																	banner_questions = list(banner_questions),
-																	crosstab_input = list(crosstab_input),
-																	notes = notes)
-
-
 
 	if(run_topline){
 
@@ -312,7 +308,7 @@ engage <- function(bi.user = NULL,
 
 	output_end_time <- Sys.time()
 	elapsed_time <- output_end_time - batch_time
-	elapsed_time # For informational/diagnostic use
+	print(elapsed_time) # For informational/diagnostic use
 	# fileName <- outputName("Output Results", batch_time = batch_time_char)
 	
 
@@ -361,10 +357,6 @@ engage <- function(bi.user = NULL,
 	fileName <- outputName("All Results", batch_time = batch_time_char)
 	# saveRDS(all_results, paste0(fileName, ".rds"))
 
-	batch_metadata <- rbind(readRDS('~/TrendFinder/Outputs/batch_metadata.rds'), batch_metadata_update)
-	saveRDS(batch_metadata, '~/TrendFinder/Outputs/batch_metadata.rds')
-
-
 	# if (!is.null(format_output)) {
 	#   if (!is.null(cutoff_stats_flags)) {
 	#     outputFormatted <- TFwider(outputResults) %>%
@@ -382,6 +374,7 @@ engage <- function(bi.user = NULL,
 	
 	if(run_stats){
 	  outputStats <- TFstats(outputFormatted, 
+	                         batch_time = batch_time,
 	                         cutoff_stats_flags = cutoff_stats_flags,
 	                         max_chart_return = max_chart_return,
 	                         max_chart_iterate = max_chart_iterate)
