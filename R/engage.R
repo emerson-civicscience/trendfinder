@@ -2,6 +2,7 @@
 
 engage <- function(bi.user = NULL,
 									 bi.password = NULL,
+									 batch_time = NULL,
 									 stem_questions = NULL,
 									 banner_questions = NULL,
 									 segment_list = NULL,
@@ -25,8 +26,6 @@ engage <- function(bi.user = NULL,
 									 must_plot = NULL,
 									 plot_all = FALSE,
 									 python_loc = NULL){
-  
-  batch_time <- Sys.time()  # This iteration of TrendFinder relies on the concept of batches to organize/audit data
 
 	stem_questions <- unique(stem_questions)
 	banner_questions <- unique(banner_questions)
@@ -64,9 +63,10 @@ engage <- function(bi.user = NULL,
 	# outputDate <- today() - 1 # The default date in outputFilePathMaker is today()
 	outputFilePath <- outputFilePathMaker()
 	
+	save_variables <- readRDS('~/TrendFinder/Outputs/save_variables.rds')
 	image_file_name <- file.path(outputFilePath, paste0("TrendFinder Environment ", batch_time, ".RData"))
-	save.image(file=image_file_name)
-
+	save(list = save_variables, file = image_file_name, envir = .GlobalEnv)
+	
 	if(!is.null(crosstab_input)){
 	  
 	  crosstabStemList <- crosstab_input[, c("stem", "weight")]
