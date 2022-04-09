@@ -1,63 +1,58 @@
 TFcrosstabPreconditions <- function(crosstabRow,
                                     segment_list = NULL,
+                                    stem_start_dates = stem_start_dates,
+                                    stem_end_dates = stem_end_dates,
                                     data_start_dates = data_start_dates,
 																		data_end_dates = data_end_dates,
 																		geography = USgeography,
-																		useStemAndBannerPrecondition = NULL,
-																		useStemPrecondition = NULL){
+																		date_stem_and_banner = FALSE){
+  
+  # It's default to use the banner precondition because it's generally more useful, but in some cases it might be better
+  # to date the crosstab by the stem or both.
 
 	stemQuestion <- as.character(crosstabRow[1])
 	bannerQuestion <- as.character(crosstabRow[2])
 	scheme_name <- as.character(crosstabRow[3])
 
-	
-	# It's default to use the banner precondition because it's generally more useful, but in some cases it might be better
-	# to date the crosstab by the stem or both. This code and the crosstabTable function do not currently support different
-  # dates for the stem and banner. They could, but the use cases seem limited at this time.
-	if(is.null(useStemAndBannerPrecondition)){
-		if(is.null(useStemPrecondition)){
-			crosstabPreconditions <- tibble(start_date = data_start_dates,
-																			end_date = data_end_dates,
-																			stem = stemQuestion,
-																			banner = bannerQuestion,
-																			precondition = paste0(bannerQuestion,
-																														":day>=",data_start_dates, "^",
-																														bannerQuestion,
-																														":day<=",data_end_dates, "^",
-																														geography),
-																			weighting_scheme = scheme_name)
+	if(is.null(stem_start_dates)){
+	  stem_start_dates <- NA
+	  stem_end_dates <- NA
+	  
+	  precondition <- paste0(bannerQuestion,
+	                         ":day>=",data_start_dates, "^",
+	                         bannerQuestion,
+	                         ":day<=",data_end_dates, "^",
+	                         geography)
+	} else{
+		if(date_stem_and_banner){
+		  precondition <- paste0(stemQuestion,
+		                         ":day>=",stem_start_dates, "^",
+		                         stemQuestion,
+		                         ":day<=",stem_end_dates, "^",
+		                         bannerQuestion,
+		                         ":day>=",data_start_dates, "^",
+		                         bannerQuestion,
+		                         ":day<=",data_end_dates, "^",
+		                         geography)
 
 		} else{
-
-			crosstabPreconditions <- tibble(start_date = data_start_dates,
-																			end_date = data_end_dates,
-																			stem = stemQuestion,
-																			banner = bannerQuestion,
-																			precondition = paste0(stemQuestion,
-																														":day>=",data_start_dates, "^",
-																														stemQuestion,
-																														":day<=",data_end_dates, "^",
-																														geography),
-																			weighting_scheme = scheme_name)
-
+		  
+		  precondition <- paste0(stemQuestion,
+		                         ":day>=",stem_start_dates, "^",
+		                         stemQuestion,
+		                         ":day<=",stem_end_dates, "^",
+		                         geography)
 		}
-	} else{
-
-		crosstabPreconditions <- tibble(start_date = data_start_dates,
-																		end_date = data_end_dates,
-																		stem = stemQuestion,
-																		banner = bannerQuestion,
-																		precondition = paste0(stemQuestion,
-																													":day>=",data_start_dates, "^",
-																													stemQuestion,
-																													":day<=",data_end_dates, "^",
-																													bannerQuestion,
-																													":day>=",data_start_dates, "^",
-																													bannerQuestion,
-																													":day<=",data_end_dates, "^",
-																													geography),
-																		weighting_scheme = scheme_name)
 	}
+	
+	crosstabPreconditions <- tibble(stem_start_date = stem_start_dates,
+	                                stem_end_date = stem_end_dates,
+	                                start_date = data_start_dates,
+	                                end_date = data_end_dates,
+	                                stem = stemQuestion,
+	                                banner = bannerQuestion,
+	                                precondition = precondition,
+	                                weighting_scheme = scheme_name)
 
   return(crosstabPreconditions)
 

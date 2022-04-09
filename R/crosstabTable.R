@@ -1,39 +1,35 @@
 crosstabTable <- function (precondition = NULL,
-                             question.ids = NULL,
-                             row.answer.group.ids = NULL,
-                             row.answer.group.names = NULL,
-                             col.answer.group.ids = NULL,
-                             col.answer.group.names = NULL,
-                             weights = NULL,
-                             access.key = CS_ACCESS_KEY,
-                             secret.key = CS_SECRET_KEY)
+                           question.ids = NULL,
+                           start_date = start_date,
+                           end_date = end_date,
+                           row.answer.group.ids = NULL,
+                           row.answer.group.names = NULL,
+                           col.answer.group.ids = NULL,
+                           col.answer.group.names = NULL,
+                           weights = NULL,
+                           access.key = CS_ACCESS_KEY,
+                           secret.key = CS_SECRET_KEY)
 
   ### Mostly stolen from cs_create_crosstab_barchart
 
 {
 
-  ### Try commenting these out
-  # library(dplyr)
-  # library(ggplot2)
-  # library(gridExtra)
-  # library(lubridate)
-
-  if(grepl(":day>=", precondition)){
-    start_date <- sub('.*:day>=', '', precondition) %>%
-      substr(1, 10)
-  } else{
-    start_date <- sub('.*:day>=', '', precondition) %>%
-      substr(1, 10)
-  }
-
-  if(grepl(":day<=", precondition)){
-    end_date <-   sub('.*:day<=', '', precondition) %>%
-      substr(1, 10)
-  } else{
-    end_date <-   sub('.*:day<=', '', precondition) %>%
-      substr(1, 10)
-  }
-
+  # if(grepl(":day>=", precondition)){
+  #   start_date <- sub('.*:day>=', '', precondition) %>%
+  #     substr(1, 10)
+  # } else{
+  #   start_date <- sub('.*:day>=', '', precondition) %>%
+  #     substr(1, 10)
+  # }
+  # 
+  # if(grepl(":day<=", precondition)){
+  #   end_date <-   sub('.*:day<=', '', precondition) %>%
+  #     substr(1, 10)
+  # } else{
+  #   end_date <-   sub('.*:day<=', '', precondition) %>%
+  #     substr(1, 10)
+  # }
+  
   tryCatch( {
 
     

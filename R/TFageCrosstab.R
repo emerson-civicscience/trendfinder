@@ -1,4 +1,4 @@
-TFageCrosstab <- function(input_row){
+TFageCrosstab <- function(input_row, geo_precondition = NULL){
 
   banner_question <- input_row[1]
   start_date <- input_row[2]
@@ -8,7 +8,7 @@ TFageCrosstab <- function(input_row){
 
   crosstabPrecondition <- paste0(banner_question, ":day>=", start_date,"^",
                                  banner_question,":day<", end_date,
-                                 "^484=",c("1536", "1537"))
+                                 "^484=",c("1536", "1537"), geo_precondition)
 
   crosstab_age <- lapply(crosstabPrecondition, crosstabAgeTable,
                          question.ids = c(7078, as.numeric(banner_question)))

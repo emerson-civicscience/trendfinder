@@ -3,8 +3,10 @@ TFcrosstab <- function(crosstabCondition,
                        # data_end_dates,
                        weighting_dict = weighting_dict){
 
-  stemQuestion <- as.numeric(crosstabCondition[1])
-  bannerQuestion <- as.numeric(crosstabCondition[2])
+  start_date <- crosstabCondition[1]
+  end_date <- crosstabCondition[2]
+  stemQuestion <- as.numeric(crosstabCondition[3])
+  bannerQuestion <- as.numeric(crosstabCondition[4])
 
   # Initially wanted the ability to put answer group names into the API, but since answer groupings
   # are now handled ad hoc after computation of ungrouped results, they are only needed for error handling
@@ -26,9 +28,9 @@ TFcrosstab <- function(crosstabCondition,
 
   bannerNames <- as.character(bannerIDs)# Use answer choice IDs as group names
 
-  crosstabPrecondition <- crosstabCondition[3]
+  crosstabPrecondition <- crosstabCondition[5]
 
-  scheme_name <- as.character(crosstabCondition[4])
+  scheme_name <- as.character(crosstabCondition[6])
   
   weights <- weighting_dict[which(weighting_dict$scheme_name == scheme_name),2][[1]][[1]]
 
@@ -39,6 +41,8 @@ TFcrosstab <- function(crosstabCondition,
   }
 
   crosstabResults <- lapply(crosstabPrecondition, crosstabTable,
+                            start_date = start_date,
+                            end_date = end_date,
                             question.ids = c(stemQuestion, bannerQuestion, 484, 7078),
                             row.answer.group.ids = stemIDs,
                             row.answer.group.names = stemNames,

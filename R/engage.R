@@ -9,9 +9,12 @@ engage <- function(bi.user = NULL,
 									 segment_names = NULL,
 									 segment_crosstabs = FALSE,
 									 crosstab_input = NULL,
+									 stem_start_dates = NULL,
+									 stem_end_dates = NULL,
 									 data_start_dates = "2021-01-01",
 									 data_end_dates = NULL,
 									 time_period = NULL,
+									 date_stem_and_banner = FALSE,
 									 weighting_schemes = NULL,
 									 run_topline = TRUE,
 									 run_crosstabs = TRUE,
@@ -35,12 +38,20 @@ engage <- function(bi.user = NULL,
 	                            bi.user = bi.user,
 	                            bi.password = bi.password)
 
-	if(!exists('data_end_dates') | is.null(data_end_dates)){
+	if(is.null(data_end_dates)){
 		data_end_dates <- TFdateHandler(data_start_dates)
 	} else{
 		data_end_dates <- TFdateHandler(data_start_dates, data_end_dates = data_end_dates)
 	}
-
+	
+	if(!is.null(stem_start_dates)){
+  	if(is.null(stem_end_dates)){
+  	  stem_end_dates <- TFdateHandler(stem_start_dates)   
+  	  } else{
+  	    stem_end_dates <- TFdateHandler(stem_start_dates, data_end_dates = stem_end_dates)
+  	  }
+	}
+	
 	if(length(time_period) != length(data_start_dates)){
 		time_period <- data_start_dates
 	}
@@ -94,7 +105,7 @@ engage <- function(bi.user = NULL,
 	
 	trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
 
-	anti_join_columns <- c("start_date", "end_date", "stem", "banner", "weighting_scheme") # Used for matching history with current preconditions
+	anti_join_columns <- c("stem_start_date", "stem_end_date", "start_date", "end_date", "stem", "banner", "weighting_scheme") # Used for matching history with current preconditions
 	condition_columns <- c("banner", "precondition", "weighting_scheme") # Used to remove unwanted columns from precondition tables
 
 	batch_time_char <- format(batch_time, "%Y-%m-%d %H:%M:%S %Z")
@@ -170,8 +181,11 @@ engage <- function(bi.user = NULL,
 
 		segmentConditions <- mclapply(questionListUnique, TFsegmentPreconditions,
 																	segment_list = segment_list,
+																	stem_start_dates = stem_start_dates,
+																	stem_end_dates = stem_end_dates,
 																	data_start_dates = data_start_dates,
 																	data_end_dates = data_end_dates,
+																	date_stem_and_banner = date_stem_and_banner,
 																	mc.cores = detectCores()) %>%
 			rbindlist()
 		
@@ -238,7 +252,6 @@ engage <- function(bi.user = NULL,
 				crosstab_input <- permutations(length(questionList), 2, questionList) %>%
 					as.data.table() # This can get quite big quite fast!
 			}
-
 		}
 
 		crosstabRows <- transpose(crosstab_input) %>%
@@ -246,22 +259,26 @@ engage <- function(bi.user = NULL,
 
 		crosstabConditions <- mclapply(crosstabRows, TFcrosstabPreconditions,
 		                               segment_list = segment_list,
+		                               stem_start_dates = stem_start_dates,
+		                               stem_end_dates = stem_end_dates,
 																	 data_start_dates = data_start_dates,
 																	 data_end_dates = data_end_dates,
+																	 date_stem_and_banner = date_stem_and_banner,
 																	 mc.cores = detectCores()) %>%
 			rbindlist()
 
-		### Remove rows based on prior results run by TrendFinder
-		### See comment just after toplineConditions (above) for more info
 		if(segment_crosstabs){
 		  if(!is.null(segment_list)){
-		    segment_crosstab_join <- left_join(crosstabConditions[, c("start_date", "end_date", "stem", "banner")], 
-		                                       segmentConditions[, c("start_date", "end_date", "banner", "precondition", "weighting_scheme")], 
+		    segment_crosstab_join <- left_join(crosstabConditions[, c("stem_start_date", "stem_end_date", "start_date", "end_date", "stem", "banner")], 
+		                                       segmentConditions[, c("stem_start_date", "stem_end_date", "start_date", "end_date", "banner", "precondition", "weighting_scheme")], 
 		                                       by = c("start_date", "end_date", "banner"))
 		    crosstabConditions <- rbind(crosstabConditions, segment_crosstab_join)
 		  }
 		}
 		
+		
+		### Remove rows based on prior results run by TrendFinder
+		### See comment just after toplineConditions (above) for more info
     crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=all_of(anti_join_columns))
 				
 		if(nrow(crosstabConditionsDeduped) == 0){
@@ -272,14 +289,12 @@ engage <- function(bi.user = NULL,
 
 			crosstabConditionsDeduped <- as_tibble(crosstabConditionsDeduped)
 
-			crosstabConditionsDeduped <- crosstabConditionsDeduped[, c("stem", condition_columns)]
+			crosstabConditionsDeduped <- crosstabConditionsDeduped[, c("start_date", "end_date", "stem", condition_columns)]
 
 			crosstabConditionsList <- transpose(crosstabConditionsDeduped) %>%
 				as.list()
 
 			crosstabResults <- mclapply(crosstabConditionsList, TFcrosstab,
-																	# data_start_dates = data_start_dates,
-																	# data_end_dates = data_end_dates,
 																	weighting_dict = weighting_dict,
 																	mc.cores = detectCores()) %>%
 				rbindlist()
@@ -315,7 +330,12 @@ engage <- function(bi.user = NULL,
 	if(!is.null(outputResults)){
 	  outputResults <- as_tibble(outputResults)
 
-		outputResults <- TFoutputResultsFormat(outputResults, batch_time = batch_time_char)
+		outputResults <- TFoutputResultsFormat(outputResults, 
+		                                       stem_start_dates,
+		                                       stem_end_dates,
+		                                       data_start_dates,
+		                                       data_end_dates,
+		                                       batch_time = batch_time_char)
 		# write.table(outputResults, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 		# saveRDS(outputResults, paste0(fileName, ".rds"))
 	}
@@ -326,8 +346,8 @@ engage <- function(bi.user = NULL,
 
 		trendfinder_history_update$batch <- batch_time_char
 		trendfinder_history_update <- as.data.frame(trendfinder_history_update)
-		trendfinder_history_update <- trendfinder_history_update[, c("batch", "start_date", "end_date", "weighting_scheme", "stem", "banner")]
 		trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
+		trendfinder_history_update <-trendfinder_history_update[, colnames(trendfinder_history)]
 		trendfinder_history <- rbind(trendfinder_history, trendfinder_history_update)
 		saveRDS(trendfinder_history, '~/TrendFinder/Outputs/trendfinder_history.rds')
 
@@ -353,7 +373,12 @@ engage <- function(bi.user = NULL,
 	# When answer groupings in the calculation phase are done away with, this won't be necessary
 	# outputResults <- outputResults[-which(is.na(outputResults$response_count)), ]
 
-	all_results <- TFoutputResultsFormat(all_results, batch_time = batch_time_char)
+	all_results <- TFoutputResultsFormat(all_results, 
+	                                     stem_start_dates,
+	                                     stem_end_dates,
+	                                     data_start_dates,
+	                                     data_end_dates,
+	                                     batch_time = batch_time_char)
 	fileName <- outputName("All Results", batch_time = batch_time_char)
 	# saveRDS(all_results, paste0(fileName, ".rds"))
 
