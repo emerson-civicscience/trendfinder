@@ -9,6 +9,14 @@ TFsegmentPreconditions <- function(bannerQuestion,
 																	 segmentPreconditions = NULL){
 
 	bannerQuestion <- as.character(bannerQuestion)
+	
+	if(is.null(stem_start_dates)){
+	  stem_start_dates <- NA
+	}
+	
+	if(is.null(stem_end_dates)){
+	  stem_end_dates <- NA
+	}
 
 	for(segment_loop in segment_list){
 
@@ -52,10 +60,10 @@ TFsegmentPreconditions <- function(bannerQuestion,
 		                                       end_date = data_end_dates,
 		                                       stem = segment_and_scheme_name,
 		                                       banner = bannerQuestion,
-		                                       precondition = precondition),
+		                                       precondition = precondition,
 		                                weighting_scheme = segment_and_scheme_name,
 		                                weights = list(list(segment_loop$segmentGender, segment_loop$segmentAge))
-		  )
+		  ))
 		
 	}
 

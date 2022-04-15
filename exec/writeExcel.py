@@ -101,7 +101,7 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
     # skips finding the question text for the stem
     # Assign "Stem" to 'Stem QID'to parse the series info for the makeChart function
     
-    if (stem_q != banner_q and stem_q != '0') or type(stem_q) == str:
+    if stem_q != '0' and (stem_q != banner_q or type(stem_q) == str):
       stem_df = pandas_df[pandas_df["Stem QText"] == "Topline"]
       stem_df = stem_df[stem_df["Banner QID"] == stem_q]
       stem_df = stem_df[stem_df["Banner Group ID"] == stem_group]
