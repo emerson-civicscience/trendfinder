@@ -8,8 +8,8 @@ TFtoplinePreconditions <- function(questionRowTopline,
 
 	# The way the API works, age/gender must be part of the precondition and not just the weighting scheme if the
 	# weighting scheme contains zero values, otherwise it will give the correct proportions but overcount the respondents
-	toplinePreconditions <- tibble(stem_start_date = "NA",
-	                               stem_end_date = "NA",
+	toplinePreconditions <- tibble(stem_start_date = NA,
+	                               stem_end_date = NA,
 	                               start_date = data_start_dates,
 																 end_date = data_end_dates,
 																 stem = "0",

@@ -136,7 +136,7 @@ engage <- function(bi.user = NULL,
 		  toplineResults <- NULL
 			outputResults <- NULL
 			trendfinder_history_update <- NULL
-			allConditions <- toplineConditions
+			# allConditions <- toplineConditions
 		} else{
 
 			trendfinder_history_update <- toplineConditionsDeduped
@@ -223,6 +223,8 @@ engage <- function(bi.user = NULL,
 
 			segmentConditionsDeduped <- segmentConditionsDeduped[, anti_join_columns]
 			
+			
+			
 			segmentResultsChar <- segmentResults
 			segmentResultsChar$data.banner <- as.character(segmentResults$data.banner)
 			
@@ -240,6 +242,7 @@ engage <- function(bi.user = NULL,
 		
 		segment_conditions_for_all <- segmentConditions[, ..anti_join_columns]
 		allConditions <- rbind(allConditions, segment_conditions_for_all)
+		trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped)
 
 	}
 
@@ -343,18 +346,18 @@ engage <- function(bi.user = NULL,
 	trendfinder_results <- readRDS('~/TrendFinder/Outputs/trendfinder_results.rds')
 
 	if(!is.null(trendfinder_history_update)){
-
-		trendfinder_history_update$batch <- batch_time_char
-		trendfinder_history_update <- as.data.frame(trendfinder_history_update)
-		trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
-		trendfinder_history_update <-trendfinder_history_update[, colnames(trendfinder_history)]
-		trendfinder_history <- rbind(trendfinder_history, trendfinder_history_update)
-		saveRDS(trendfinder_history, '~/TrendFinder/Outputs/trendfinder_history.rds')
-
-		trendfinder_results <- rbind(trendfinder_results, outputResults)
-		trendfinder_results <- trendfinder_results[!duplicated(trendfinder_results), ] # Just in case
-		saveRDS(trendfinder_results, '~/TrendFinder/Outputs/trendfinder_results.rds')
-	}
+	  if(nrow(trendfinder_history_update > 0)){
+	      trendfinder_history_update$batch <- batch_time_char
+	      trendfinder_history_update <- as.data.frame(trendfinder_history_update)
+	      trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
+	      trendfinder_history_update <-trendfinder_history_update[, colnames(trendfinder_history)]
+	      trendfinder_history <- rbind(trendfinder_history, trendfinder_history_update)
+	      saveRDS(trendfinder_history, '~/TrendFinder/Outputs/trendfinder_history.rds')
+	      trendfinder_results <- rbind(trendfinder_results, outputResults)
+	      trendfinder_results <- trendfinder_results[!duplicated(trendfinder_results), ] # Just in case
+	      saveRDS(trendfinder_results, '~/TrendFinder/Outputs/trendfinder_results.rds')
+	    }
+	  }
 
 
 	# now have to mash up the already computed rows here with join instead of anti-join
