@@ -10,8 +10,8 @@ TFoutputResultsFormat <- function(outputResults,
 
 	outputResults$batch <- batch_time
 	
-	outputResults$stem_start_date <- "NA"
-	outputResults$stem_end_date <- "NA"
+	outputResults$stem_start_date <- NA
+	outputResults$stem_end_date <- NA
 	
 	if(!is.null(stem_start_dates)){
 	  for(i in 1:nrow(outputResults)){
