@@ -20,6 +20,7 @@ engage <- function(bi.user = NULL,
 									 run_crosstabs = TRUE,
 									 manual_crosstab_input = NULL,
 									 use_manual_crosstab_only = TRUE,
+									 format_output = TRUE,
 									 run_stats = FALSE,
 									 use_default_answer_flag = FALSE,
 									 cutoff_stats_flags = 10,
@@ -28,11 +29,14 @@ engage <- function(bi.user = NULL,
 									 use_tags = TRUE,
 									 must_plot = NULL,
 									 plot_all = FALSE,
-									 python_loc = NULL){
+									 python_loc = NULL,
+									 plot_stem_override = FALSE,
+									 letter_stats_output = FALSE,
+									 ancestry_output = FALSE){
 
 	stem_questions <- unique(stem_questions)
 	banner_questions <- unique(banner_questions)
-	crosstab_input <- crosstab_input[!duplicated(crosstab_input), ]
+	manual_crosstab_input <- manual_crosstab_input[!duplicated(manual_crosstab_input), ]
 
 	weighting_dict <- TFweights(weighting_schemes,
 	                            bi.user = bi.user,
@@ -74,19 +78,28 @@ engage <- function(bi.user = NULL,
 	# outputDate <- today() - 1 # The default date in outputFilePathMaker is today()
 	outputFilePath <- outputFilePathMaker()
 	
-	save_variables <- readRDS('~/TrendFinder/Outputs/save_variables.rds')
+	# save_variables_all <- readRDS('~/TrendFinder/Outputs/save_variables.rds')
+	# save_variables <- NULL
+	# 
+	# for(i in save_variables_all){
+	#   next_variable <- i[!is.null(eval(as.symbol(i)))]
+	#   save_variables <- c(save_variables, next_variable)
+	# }
+	# 
+	# save_variables <- ls()[which(ls() %in% save_variables)]
+
 	image_file_name <- file.path(outputFilePath, paste0("TrendFinder Environment ", batch_time, ".RData"))
-	save(list = save_variables, file = image_file_name, envir = .GlobalEnv)
+	save.image(file = image_file_name)
 	
-	if(!is.null(crosstab_input)){
-	  
-	  crosstabStemList <- crosstab_input[, c("stem", "weight")]
-	  colnames(crosstabStemList) <- colnames(questionList)
-	  crosstabBannerList <- crosstab_input[, c("banner", "weight")]
-	  crosstabQuestionList <- rbind(crosstabStemList, crosstabBannerList) %>%
-	    .[!duplicated(.), ] 
-		
-	}
+	# if(!is.null(crosstab_input)){
+	#   
+	#   crosstabStemList <- crosstab_input[, c("stem", "weight")]
+	#   colnames(crosstabStemList) <- colnames(questionList)
+	#   crosstabBannerList <- crosstab_input[, c("banner", "weight")]
+	#   crosstabQuestionList <- rbind(crosstabStemList, crosstabBannerList) %>%
+	#     .[!duplicated(.), ] 
+	# 	
+	# }
 
 	# If no questions are specified for topline results but topline results are requested, create topline list of all
 	# unique questions in crosstab input.
@@ -139,7 +152,7 @@ engage <- function(bi.user = NULL,
 			# allConditions <- toplineConditions
 		} else{
 
-			trendfinder_history_update <- toplineConditionsDeduped
+			trendfinder_history_update <- toplineConditionsDeduped %>% select(all_of(anti_join_columns))
 
 			toplineConditionsDeduped <- as_tibble(toplineConditionsDeduped)
 
@@ -242,21 +255,12 @@ engage <- function(bi.user = NULL,
 		
 		segment_conditions_for_all <- segmentConditions[, ..anti_join_columns]
 		allConditions <- rbind(allConditions, segment_conditions_for_all)
-		trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped)
+		# trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, anti_join_columns])
 
 	}
 
 
 	if(run_crosstabs){
-		if(is.null(crosstab_input)){
-			if(length(questionList) < 3){
-				crosstab_input <- data.table(seg = stem_questions, com = banner_questions, weighting_scheme = weighting_schemes)
-			} else{
-				crosstab_input <- permutations(length(questionList), 2, questionList) %>%
-					as.data.table() # This can get quite big quite fast!
-			}
-		}
-
 		crosstabRows <- transpose(crosstab_input) %>%
 			as.list()
 
@@ -279,16 +283,22 @@ engage <- function(bi.user = NULL,
 		  }
 		}
 		
+		# crosstabConditions$stem_start_date[crosstabConditions$stem_start_date == "NA"] <- NA
+		# crosstabConditions$stem_end_date[crosstabConditions$stem_end_date == "NA"] <- NA
+		
 		
 		### Remove rows based on prior results run by TrendFinder
 		### See comment just after toplineConditions (above) for more info
+		
     crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=all_of(anti_join_columns))
-				
+    
 		if(nrow(crosstabConditionsDeduped) == 0){
 			crosstabResults <- NULL
 		} else{
+		  
+		  
 
-			trendfinder_history_update <- rbind(trendfinder_history_update, crosstabConditionsDeduped)
+			trendfinder_history_update <- rbind(trendfinder_history_update, crosstabConditionsDeduped %>% select(all_of(anti_join_columns)))
 
 			crosstabConditionsDeduped <- as_tibble(crosstabConditionsDeduped)
 
@@ -412,6 +422,10 @@ engage <- function(bi.user = NULL,
 	  input_TFmakeCharts <- outputFormatted
 	}
 	
+	if(letter_stats_output){
+	  input_TFmakeCharts <- TFdatePropTestLetters(input_TFmakeCharts)
+	}
+	
 	# View(outputFormatted)
 	
 	# write.table(outputFormatted, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
@@ -422,6 +436,7 @@ engage <- function(bi.user = NULL,
 	             use_tags = use_tags,
 	             must_plot = must_plot,
 	             plot_all = plot_all,
-	             python_loc = python_loc)
+	             python_loc = python_loc,
+	             ancestry_output = ancestry_output)
 
 	}
