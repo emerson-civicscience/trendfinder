@@ -54,15 +54,15 @@ TFsegmentPreconditions <- function(bannerQuestion,
 		
 		
 		  segmentPreconditions <- rbind(segmentPreconditions,
-		                                tibble(stem_start_date = stem_start_dates,
-		                                       stem_end_date = stem_end_dates,
-		                                       start_date = data_start_dates,
-		                                       end_date = data_end_dates,
-		                                       stem = segment_and_scheme_name,
-		                                       banner = bannerQuestion,
-		                                       precondition = precondition,
-		                                weighting_scheme = segment_and_scheme_name,
-		                                weights = list(list(segment_loop$segmentGender, segment_loop$segmentAge))
+		                                data.table(stem_start_date = stem_start_dates,
+		                                           stem_end_date = stem_end_dates,
+		                                           start_date = data_start_dates,
+		                                           end_date = data_end_dates,
+		                                           stem = segment_and_scheme_name,
+		                                           banner = bannerQuestion,
+		                                           precondition = precondition,
+		                                           weighting_scheme = segment_and_scheme_name,
+		                                           weights = list(list(segment_loop$segmentGender, segment_loop$segmentAge))
 		  ))
 		
 	}

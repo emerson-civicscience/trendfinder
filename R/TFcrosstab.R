@@ -39,7 +39,7 @@ TFcrosstab <- function(crosstabCondition,
   if(!is.null(age_gender_precondition)){
     crosstabPrecondition <- paste0(age_gender_precondition, "^", crosstabPrecondition)
   }
-
+  
   crosstabResults <- lapply(crosstabPrecondition, crosstabTable,
                             start_date = start_date,
                             end_date = end_date,

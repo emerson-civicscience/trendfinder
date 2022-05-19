@@ -236,3 +236,4 @@ def writeExcel(pandas_df, data_colnames_wanted_py, chart_references_py, file_nam
         makeChart(chart_title_crosstab_2_formula, crosstab_2_series, category_name_row)
               
   writer.save()
+
