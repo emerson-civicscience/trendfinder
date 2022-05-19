@@ -64,6 +64,16 @@ TFmakeCharts <- function(input_TFmakeCharts,
 	dt <- dt[!duplicated(dt[c("Weighting Scheme", "Stem QID", "Stem Group ID", "Stem Answer ID", "Stem Name", "Banner QID", "Banner Group ID", "Banner Answer ID", "Banner Name")]), ]
 	
 	
+	if(!ancestry_output){
+	  remove_stems <- which(dt$`Stem QText` == "Ancestry Brand Dash Segments")
+	  remove_banners <- which(dt$`Banner QText` == "Ancestry Brand Dash Segments")
+	  remove_rows <- c(remove_stems, remove_banners)
+	  if(length(remove_rows) > 0){
+	    dt <- dt[-remove_rows, ]
+	  }
+	  
+	}
+	
 	if(plot_all){
 		dt$Chart <- 1
 	} else if(!is.null(must_plot)){
