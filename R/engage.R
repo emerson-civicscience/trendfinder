@@ -255,7 +255,7 @@ engage <- function(bi.user = NULL,
 		
 		segment_conditions_for_all <- segmentConditions[, ..anti_join_columns]
 		allConditions <- rbind(allConditions, segment_conditions_for_all)
-		trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, anti_join_columns])
+		trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, ..anti_join_columns])
 
 	}
 
