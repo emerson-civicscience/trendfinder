@@ -6,6 +6,7 @@ TFdatePropTestLetters <- function(input){
   
   count_cols <- grep(" - Response Count$", colnames(input))  # Dollar sign regex for 'ends with'
   # total_cols <- grep(" - total responses$", colnames(input)) # Dollar sign regex for 'ends with'
+  
   prop_column_combinations <- combn(count_cols, 2) # This creates a table of all the possible pairwise combinations of columns for stat testing
   
   
@@ -38,21 +39,21 @@ TFdatePropTestLetters <- function(input){
       
       count_1_col_text <- input_cols[count_1_col]
       count_2_col_text <- input_cols[count_2_col]
-      total_1_text <- gsub(" - response count", " - total responses", count_1_col_text)
-      total_2_text <- gsub(" - response count", " - total responses", count_2_col_text)
+      total_1_text <- gsub(" - Response Count", " - Total Response Count", count_1_col_text)
+      total_2_text <- gsub(" - Response Count", " - Total Response Count", count_2_col_text)
       total_1_col <- which(input_cols == total_1_text)
       total_2_col <- which(input_cols == total_2_text)
       
-      count_1 <- result[i, count_1_col]
-      count_2 <- result[i, count_2_col]
-      total_1 <- result[i, total_1_col]
-      total_2 <- result[i, total_2_col]
+      count_1 <- result[i, count_1_col] %>% as.numeric()
+      count_2 <- result[i, count_2_col] %>% as.numeric()
+      total_1 <- result[i, total_1_col] %>% as.numeric()
+      total_2 <- result[i, total_2_col] %>% as.numeric()
       
-      result_col_1 <- total_1_col + length(count_cols)
-      result_col_2 <- total_2_col + length(count_cols)
+      result_col_1 <- total_1_col + length(count_cols)*2
+      result_col_2 <- total_2_col + length(count_cols)*2
       
-      if(is.na(count_1) == FALSE){
-        if(is.na(count_2) == FALSE){
+      if(!is.na(count_1)){
+        if(!is.na(count_2)){
           if(count_1 > 0 && count_1 != total_1){
             if(count_2 > 0 && count_2 != total_2){
               

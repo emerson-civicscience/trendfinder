@@ -255,7 +255,7 @@ engage <- function(bi.user = NULL,
 		
 		segment_conditions_for_all <- segmentConditions[, ..anti_join_columns]
 		allConditions <- rbind(allConditions, segment_conditions_for_all)
-		# trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, anti_join_columns])
+		trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, anti_join_columns])
 
 	}
 
@@ -356,7 +356,7 @@ engage <- function(bi.user = NULL,
 	trendfinder_results <- readRDS('~/TrendFinder/Outputs/trendfinder_results.rds')
 
 	if(!is.null(trendfinder_history_update)){
-	  if(nrow(trendfinder_history_update > 0)){
+	  if(nrow(trendfinder_history_update) > 0){
 	      trendfinder_history_update$batch <- batch_time_char
 	      trendfinder_history_update <- as.data.frame(trendfinder_history_update)
 	      trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
@@ -409,6 +409,11 @@ engage <- function(bi.user = NULL,
 	# outputWider <- TFwider(all_results)
 	outputFormatted <- TFwider(all_results) %>%
 	  TFformat(., time_period = time_period, segment_names = segment_names, use_default_answer_flag = use_default_answer_flag, batch_time = batch_time_char)
+	
+	if(ancestry_output){
+	  outputFormatted <- TFancestryOutputFormat(outputFormatted)
+	}
+	
 	
 	if(run_stats){
 	  outputStats <- TFstats(outputFormatted, 
