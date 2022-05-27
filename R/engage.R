@@ -11,8 +11,8 @@ engage <- function(bi.user = NULL,
 									 crosstab_input = NULL,
 									 stem_start_dates = NULL,
 									 stem_end_dates = NULL,
-									 data_start_dates = "2021-01-01",
-									 data_end_dates = NULL,
+									 start_dates = "2021-01-01",
+									 end_dates = NULL,
 									 time_period = NULL,
 									 date_stem_and_banner = FALSE,
 									 weighting_schemes = NULL,
@@ -42,10 +42,10 @@ engage <- function(bi.user = NULL,
 	                            bi.user = bi.user,
 	                            bi.password = bi.password)
 
-	if(is.null(data_end_dates)){
-		data_end_dates <- TFdateHandler(data_start_dates)
+	if(is.null(end_dates)){
+		data_end_dates <- TFdateHandler(start_dates)
 	} else{
-		data_end_dates <- TFdateHandler(data_start_dates, data_end_dates = data_end_dates)
+		data_end_dates <- TFdateHandler(start_dates, data_end_dates = end_dates)
 	}
 	
 	if(!is.null(stem_start_dates)){
@@ -56,8 +56,8 @@ engage <- function(bi.user = NULL,
   	  }
 	}
 	
-	if(length(time_period) != length(data_start_dates)){
-		time_period <- data_start_dates
+	if(length(time_period) != length(start_dates)){
+		time_period <- start_dates
 	}
 
 	questionList <- TFtoplineQuestionHandler(stem_questions = stem_questions,
@@ -129,7 +129,7 @@ engage <- function(bi.user = NULL,
 			as.list()
 
 		toplineConditions <- mclapply(questionListTopline, TFtoplinePreconditions,
-																	data_start_dates = data_start_dates,
+		                              data_start_dates = start_dates,
 																	data_end_dates = data_end_dates,
 																	mc.cores = detectCores()) %>%
 			rbindlist()
@@ -196,7 +196,7 @@ engage <- function(bi.user = NULL,
 																	segment_list = segment_list,
 																	stem_start_dates = stem_start_dates,
 																	stem_end_dates = stem_end_dates,
-																	data_start_dates = data_start_dates,
+																	data_start_dates = start_dates,
 																	data_end_dates = data_end_dates,
 																	date_stem_and_banner = date_stem_and_banner,
 																	mc.cores = detectCores()) %>%
@@ -268,7 +268,7 @@ engage <- function(bi.user = NULL,
 		                               segment_list = segment_list,
 		                               stem_start_dates = stem_start_dates,
 		                               stem_end_dates = stem_end_dates,
-																	 data_start_dates = data_start_dates,
+																	 data_start_dates = start_dates,
 																	 data_end_dates = data_end_dates,
 																	 date_stem_and_banner = date_stem_and_banner,
 																	 mc.cores = detectCores()) %>%
@@ -346,7 +346,7 @@ engage <- function(bi.user = NULL,
 		outputResults <- TFoutputResultsFormat(outputResults, 
 		                                       stem_start_dates,
 		                                       stem_end_dates,
-		                                       data_start_dates,
+		                                       start_dates,
 		                                       data_end_dates,
 		                                       batch_time = batch_time_char)
 		# write.table(outputResults, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
@@ -389,7 +389,7 @@ engage <- function(bi.user = NULL,
 	all_results <- TFoutputResultsFormat(all_results, 
 	                                     stem_start_dates,
 	                                     stem_end_dates,
-	                                     data_start_dates,
+	                                     start_dates,
 	                                     data_end_dates,
 	                                     batch_time = batch_time_char)
 	fileName <- outputName("All Results", batch_time = batch_time_char)
