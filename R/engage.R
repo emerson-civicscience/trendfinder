@@ -234,7 +234,7 @@ engage <- function(bi.user = NULL,
 			
 			segmentConditionsDeduped <- as.data.frame(segmentConditionsDeduped)
 
-			segmentConditionsDeduped <- segmentConditionsDeduped[, ..anti_join_columns]
+			segmentConditionsDeduped <- segmentConditionsDeduped[, anti_join_columns] ### R is seemingly schizophrenic about whether it should be `..anti_join_columns` or `anti_join_columns`
 			
 			
 			
