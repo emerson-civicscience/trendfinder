@@ -5,6 +5,13 @@ TFancestryOutputFormat <- function(outputFormatted){
   ancestry_bd_history <- left_join(ancestry_brand_dash_historical, ancestry_brand_dash_historical_notes)
   
   output_subset <- outputFormatted[, c(1, 8, 10:ncol(outputFormatted))]
+  
+  period_cols <- grep('^Period', colnames(output_subset))
+  
+  if(length(period_cols) > 0){
+    output_subset <- output_subset[, -period_cols]
+  }
+  
   output_subset$`Stem Group ID`[is.na(output_subset$`Stem Group ID`)] <- 0
   output_subset$`Banner Group ID`[is.na(output_subset$`Banner Group ID`)] <- 0
   
@@ -40,11 +47,15 @@ TFancestryOutputFormat <- function(outputFormatted){
   ancestry_data <- merge(ancestry_data, ancestry_totals)
   ancestry_data <- merge(ancestry_data, ancestry_notes)
   ancestry_data$`Apr 2022 - Notes` <- ""
+  ancestry_data$`May 2022 - Notes` <- ""
   
   ancestry_data <- ancestry_data[, c(3, 4, 1, 5:11, 2, 12:ncol(ancestry_data))]
   
   ancestry_data$`Stem Group ID`[is.na(ancestry_data$`Stem Group ID`)] <- 0
   ancestry_data$`Banner Group ID`[is.na(ancestry_data$`Banner Group ID`)] <- 0
+  
+  ### Remove data no longer being run
+  
   
   return(ancestry_data)
 }
