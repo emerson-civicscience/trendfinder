@@ -429,6 +429,11 @@ engage <- function(bi.user = NULL,
 	
 	if(letter_stats_output){
 	  input_TFmakeCharts <- TFdatePropTestLetters(input_TFmakeCharts)
+	  ### Need to:
+	  #### Remove unneeded rows from "Ancestry History" that result in NAs in output
+	  #### Find way to run the data for two months if necessary
+	  #### Find way to append an empty column of notes unless the last two months are needed or data is unavailable
+	  #### Automate aggregate charts for the first few tabs if Ancestry wants
 	}
 	
 	# View(outputFormatted)
