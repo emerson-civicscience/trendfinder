@@ -70,6 +70,13 @@ TFmakeCharts <- function(input_TFmakeCharts,
 	  remove_rows <- c(remove_stems, remove_banners)
 	  if(length(remove_rows) > 0){
 	    dt <- dt[-remove_rows, ]
+	  } else{
+	    fix_rows <- which(dt$`Banner QID` %in% c(122906, 123605))
+	    fix_dt <- dt[fix_rows, ] # Kludgey fix to get report out 2022-06-10
+	    dt <- dt[-fix_rows, ]
+	    
+	    fix_dt <- arrange(fix_dt, `Banner Answer ID`)
+	    dt <- rbind(dt, fix_dt)
 	  }
 	  
 	}
@@ -122,6 +129,7 @@ TFmakeCharts <- function(input_TFmakeCharts,
   if(ancestry_output){
     
     dt <- dt[dt$`Stem QID` == "Ancestry Brand Dash Segments", ]
+    
     pandas_df <- r_to_py(dt)
     
     ref_table <- readRDS('~/TrendFinder/Inputs/ancestry_ref_table.rds')

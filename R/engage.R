@@ -227,8 +227,8 @@ engage <- function(bi.user = NULL,
 			segmentResultsChar <- NULL
 		} else{
 		  
-		  keep_columns <- colnames(trendfinder_history_update)
-		  trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, ..keep_columns])
+		  
+		  trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, ..anti_join_columns])
 
 			segmentConditionsDedupedSubset <- segmentConditionsDeduped[ , ..condition_columns]
 
@@ -268,7 +268,8 @@ engage <- function(bi.user = NULL,
 		
 		segment_conditions_for_all <- segmentConditions[, ..anti_join_columns]
 		allConditions <- rbind(allConditions, segment_conditions_for_all)
-		trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, ..anti_join_columns])
+		segmentConditionsDeduped <- as.data.frame(segmentConditionsDeduped)
+		trendfinder_history_update <- rbind(trendfinder_history_update, segmentConditionsDeduped[, anti_join_columns])
 
 	}
 
@@ -405,7 +406,9 @@ engage <- function(bi.user = NULL,
 
 	all_results <- left_join(allConditionsAnswers, trendfinder_results, by = all_of(anti_join_columns))
 	
-	rm(list='trendfinder_history')
+	if(exists('trendfinder_history')){
+	  rm(list='trendfinder_history')
+	}
 	rm(list='trendfinder_results')
 	gc()
 
