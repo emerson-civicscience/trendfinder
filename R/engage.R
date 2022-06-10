@@ -115,15 +115,17 @@ engage <- function(bi.user = NULL,
 	    .[!duplicated(.), ] %>%
 	    arrange(., banner)
 	}
-	
-	trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
 
 	anti_join_columns <- c("stem_start_date", "stem_end_date", "start_date", "end_date", "stem", "banner", "weighting_scheme") # Used for matching history with current preconditions
 	condition_columns <- c("banner", "precondition", "weighting_scheme") # Used to remove unwanted columns from precondition tables
 
 	batch_time_char <- format(batch_time, "%Y-%m-%d %H:%M:%S %Z")
+	
+	num_cores <- detectCores()
 
 	if(run_topline){
+	  
+
 
 		questionListTopline <- transpose(questionList) %>%
 			as.list()
@@ -131,7 +133,7 @@ engage <- function(bi.user = NULL,
 		toplineConditions <- mclapply(questionListTopline, TFtoplinePreconditions,
 		                              data_start_dates = start_dates,
 																	data_end_dates = data_end_dates,
-																	mc.cores = detectCores()) %>%
+																	mc.cores = num_cores) %>%
 			rbindlist()
 
 
@@ -142,8 +144,13 @@ engage <- function(bi.user = NULL,
 		### the unique topline quesetion ID/crosstab question IDs rather than the answer IDs and actual data
 		### If the table trendfinder_history has a matching row for start_date, end_date, weights, stem, and banner,
 		### it is excluded with the anti_join() function
+		
+		trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
 
 		toplineConditionsDeduped <- anti_join(toplineConditions, trendfinder_history, by=all_of(anti_join_columns))
+		
+		rm(list='trendfinder_history')
+		gc()
 
 		if(nrow(toplineConditionsDeduped) == 0){
 		  toplineResults <- NULL
@@ -163,7 +170,7 @@ engage <- function(bi.user = NULL,
 
 
 			toplineResults <- mclapply(toplineConditionsList, TFtopline,
-																 mc.cores = detectCores()) %>%
+																 mc.cores = num_cores) %>%
 				rbindlist()
 
 			# fileName <- outputName("Topline Results", batch_time = batch_time_char)
@@ -199,7 +206,7 @@ engage <- function(bi.user = NULL,
 																	data_start_dates = start_dates,
 																	data_end_dates = data_end_dates,
 																	date_stem_and_banner = date_stem_and_banner,
-																	mc.cores = detectCores()) %>%
+																	mc.cores = num_cores) %>%
 			rbindlist()
 		
 		segment_names <- unique(segmentConditions$stem)
@@ -207,8 +214,14 @@ engage <- function(bi.user = NULL,
 		weightingDictSegments <- tibble(weighting_scheme = segmentConditions$weighting_scheme, value = segmentConditions$weights) %>%
 			unique()
 		# packageVersion('tibble') # Currently using 2.1.3 and get https://github.com/tidyverse/tibble/issues/798
-
+		
+		trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
+		
 		segmentConditionsDeduped <- anti_join(segmentConditions, trendfinder_history, by = all_of(anti_join_columns))
+		
+		rm(list='trendfinder_history')
+		gc()
+		
 
 		if(nrow(segmentConditionsDeduped) == 0){
 			segmentResultsChar <- NULL
@@ -227,7 +240,7 @@ engage <- function(bi.user = NULL,
 
 			segmentResults <- mclapply(segmentConditionsList, TFsegment,
 																 weightingDictSegments = weightingDictSegments,
-																 mc.cores = detectCores()) %>%
+																 mc.cores = num_cores) %>%
 				rbindlist()
 
 			# segmentResults <- TFoutputResultsFormat(segmentResults, batch_time = batch_time_char)
@@ -271,7 +284,7 @@ engage <- function(bi.user = NULL,
 																	 data_start_dates = start_dates,
 																	 data_end_dates = data_end_dates,
 																	 date_stem_and_banner = date_stem_and_banner,
-																	 mc.cores = detectCores()) %>%
+																	 mc.cores = num_cores) %>%
 			rbindlist()
 
 		if(segment_crosstabs){
@@ -290,26 +303,36 @@ engage <- function(bi.user = NULL,
 		### Remove rows based on prior results run by TrendFinder
 		### See comment just after toplineConditions (above) for more info
 		
-    crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=all_of(anti_join_columns))
+		trendfinder_history <- readRDS('~/TrendFinder/Outputs/trendfinder_history.rds')
+		
+		crosstabConditionsDeduped <- anti_join(crosstabConditions, trendfinder_history, by=all_of(anti_join_columns))
+		
+		rm(list='trendfinder_history')
+		gc()
+    
     
 		if(nrow(crosstabConditionsDeduped) == 0){
 			crosstabResults <- NULL
 		} else{
 		  
-		  
-
 			trendfinder_history_update <- rbind(trendfinder_history_update, crosstabConditionsDeduped %>% select(all_of(anti_join_columns)))
-
+			
 			crosstabConditionsDeduped <- as_tibble(crosstabConditionsDeduped)
-
+			
 			crosstabConditionsDeduped <- crosstabConditionsDeduped[, c("start_date", "end_date", "stem", condition_columns)]
-
+			
+			remove_stem <- which(is.na(crosstabConditionsDeduped$stem))
+			remove_banner <- which(is.na(crosstabConditionsDeduped$banner))
+			remove_rows <- c(remove_stem, remove_banner) %>% unique()
+			
+			crosstabConditionsDeduped <- crosstabConditionsDeduped[-remove_rows, ]
+			
 			crosstabConditionsList <- transpose(crosstabConditionsDeduped) %>%
 				as.list()
-
+			
 			crosstabResults <- mclapply(crosstabConditionsList, TFcrosstab,
 																	weighting_dict = weighting_dict,
-																	mc.cores = detectCores()) %>%
+																	mc.cores = num_cores) %>%
 				rbindlist()
 		}
 
@@ -381,6 +404,10 @@ engage <- function(bi.user = NULL,
 	allConditionsAnswers <- allConditionsAnswers[, ..anti_join_columns]
 
 	all_results <- left_join(allConditionsAnswers, trendfinder_results, by = all_of(anti_join_columns))
+	
+	rm(list='trendfinder_history')
+	rm(list='trendfinder_results')
+	gc()
 
 	# This is here to remove joins from dataKey that were not actually calculated
 	# When answer groupings in the calculation phase are done away with, this won't be necessary
