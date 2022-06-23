@@ -1,4 +1,5 @@
 TFcrosstab <- function(crosstabCondition,
+                       total_num_crosstabs = total_num_crosstabs,
                        # data_start_dates,
                        # data_end_dates,
                        weighting_dict = weighting_dict){
@@ -36,7 +37,7 @@ TFcrosstab <- function(crosstabCondition,
 
   age_gender_precondition <- TFageGenderPrecondition(weights)
 
-  if(!is.null(age_gender_precondition)){
+  if(length(age_gender_precondition) != 0){
     crosstabPrecondition <- paste0(age_gender_precondition, "^", crosstabPrecondition)
   }
   
@@ -58,15 +59,10 @@ TFcrosstab <- function(crosstabCondition,
 
   crosstabResults$weighting_scheme <- scheme_name
   
-  # Print occasionally if still working?
   
-  current_time <- Sys.time()
-  if(minute(current_time) == 0){
-    if(second(current_time) < 5){
-      print(paste0("TFcrosstab: questions ", stemQuestion, " & ", bannerQuestion, ", weighting_scheme: ", scheme_name))
-    }
-  }
-  
+  #' Function which prints a message using shell echo; useful for printing messages from inside mclapply when running in Rstudio
+  system(sprintf('echo "\n%s\n"', paste0(crosstabCondition, collapse=" - ")))
+
   return(crosstabResults)
 
 }
