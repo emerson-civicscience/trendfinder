@@ -28,12 +28,8 @@ TFtopline <- function(toplineCondition){
 
   toplineResults$weighting_scheme <- scheme_name
   
-  current_time <- Sys.time()
-  if(minute(current_time) == 0){
-    if(second(current_time) < 5){
-      print(paste0("TFtopline: question ", toplineQuestion))
-    }
-  }
+  #' Function which prints a message using shell echo; useful for printing messages from inside mclapply when running in Rstudio
+  system(sprintf('echo "\n%s\n"', paste0(toplineCondition, collapse=" - ")))
 
   return(toplineResults)
 }

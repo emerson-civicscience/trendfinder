@@ -326,7 +326,9 @@ engage <- function(bi.user = NULL,
 			remove_banner <- which(is.na(crosstabConditionsDeduped$banner))
 			remove_rows <- c(remove_stem, remove_banner) %>% unique()
 			
-			crosstabConditionsDeduped <- crosstabConditionsDeduped[-remove_rows, ]
+			if(!length(remove_rows) == 0){
+			  crosstabConditionsDeduped <- crosstabConditionsDeduped[-remove_rows, ]
+			}
 			
 			crosstabConditionsList <- transpose(crosstabConditionsDeduped) %>%
 				as.list()
