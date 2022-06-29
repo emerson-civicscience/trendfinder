@@ -443,7 +443,11 @@ engage <- function(bi.user = NULL,
 	  TFformat(., time_period = time_period, segment_names = segment_names, use_default_answer_flag = use_default_answer_flag, batch_time = batch_time_char)
 	
 	if(ancestry_output){
-	  outputFormatted <- TFancestryOutputFormat(outputFormatted)
+	  outputFormatted <- TFancestryOutputFormat(outputFormatted, data_start_dates = start_dates, data_end_dates = data_end_dates, time_period = time_period)
+	  remove_rows_ancestry <- which(is.na(outputFormatted$`Banner Name`))
+	  if(length(remove_rows_ancestry) > 0){
+	    outputFormatted <- outputFormatted[-remove_rows_ancestry, ]
+	  }
 	}
 	
 	
@@ -461,6 +465,9 @@ engage <- function(bi.user = NULL,
 	
 	if(letter_stats_output){
 	  input_TFmakeCharts <- TFdatePropTestLetters(input_TFmakeCharts)
+	  
+	  
+	  saveRDS(input_TFmakeCharts, paste0("~/TrendFinder/Outputs/", today(), "/Output - Responses - Formatted with Stats - Batch Time ", gsub(":", "_", batch_time_char), ".rds"))
 	  ### Need to:
 	  #### Remove unneeded rows from "Ancestry History" that result in NAs in output
 	  #### Find way to run the data for two months if necessary

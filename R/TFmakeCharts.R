@@ -70,6 +70,7 @@ TFmakeCharts <- function(input_TFmakeCharts,
 	  remove_rows <- c(remove_stems, remove_banners)
 	  if(length(remove_rows) > 0){
 	    dt <- dt[-remove_rows, ]
+	    }
 	  } else{
 	    fix_rows <- which(dt$`Banner QID` %in% c(122906, 123605))
 	    fix_dt <- dt[fix_rows, ] # Kludgey fix to get report out 2022-06-10
@@ -78,8 +79,6 @@ TFmakeCharts <- function(input_TFmakeCharts,
 	    fix_dt <- arrange(fix_dt, `Banner Answer ID`)
 	    dt <- rbind(dt, fix_dt)
 	  }
-	  
-	}
 	
 	if(plot_all){
 		dt$Chart <- 1
@@ -132,8 +131,8 @@ TFmakeCharts <- function(input_TFmakeCharts,
     
     pandas_df <- r_to_py(dt)
     
-    ref_table <- readRDS('~/TrendFinder/Inputs/ancestry_ref_table.rds')
-    chart_references_py <- r_to_py(ref_table)
+    # ref_table <- readRDS('~/TrendFinder/Inputs/ancestry_ref_table.rds')
+    chart_references_py <- r_to_py(ref_table_ancestry)
     
     python_loc_and_file <- file.path(python_loc, "writeExcelAncestry.py")
     source_python(python_loc_and_file)

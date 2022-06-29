@@ -1,4 +1,4 @@
-TFancestryOutputFormat <- function(outputFormatted){
+TFancestryOutputFormat <- function(outputFormatted, data_start_dates, data_end_dates, time_period){
   
   ancestry_brand_dash_historical <- readRDS("~/TrendFinder/Outputs/ancestry_brand_dash_historical.rds")
   ancestry_brand_dash_historical_notes <- readRDS("~/TrendFinder/Outputs/ancestry_brand_dash_historical_notes.rds")
@@ -17,6 +17,7 @@ TFancestryOutputFormat <- function(outputFormatted){
   
   output_subset$`Stem QID`[output_subset$`Stem QID`==0] <- "US Adults"
   ancestry_data <- left_join(ancestry_bd_history, output_subset, by = c("Stem QID", "Banner Answer ID"))
+  new_pc_cols <- which(colnames(output_subset) %in% time_period)
   new_rc_cols <- grep(' - response count', colnames(ancestry_data))
   new_tr_cols <- grep(' - total responses', colnames(ancestry_data))
   
