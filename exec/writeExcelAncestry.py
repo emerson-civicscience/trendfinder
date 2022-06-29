@@ -15,7 +15,6 @@ from pathlib import Path
 def writeExcelAncestry(df, chart_references_py, file_name_py):
     now = datetime.datetime.now()
     now_str = now.strftime("%Y-%m-%d %H:%M:%S").replace(":", "_")
-    
     # output_file_name = 'Excel Output - ' + now_str + '.xlsx'
     
     first_percent_col = [i for i, s in enumerate(df.columns) if 'Banner Name' == s][0] + 1
@@ -73,7 +72,7 @@ def writeExcelAncestry(df, chart_references_py, file_name_py):
         
         sheet_reference = '\'' + sheet_name + '\'!'
         
-        chart_name = 'chart' + str(chart_number)
+        chart_name = 'chart' + str(chart_number) # This is the name the program references via a dictionary, not what appears in Excel
         chart = workbook.add_chart({'type': 'column'}) # subtype???
         chart_dict[chart_name] = chart
         
@@ -105,15 +104,16 @@ def writeExcelAncestry(df, chart_references_py, file_name_py):
         chart_row = table_loc[0]
         chart_col = table_loc[1] - 2
         
-        banner_qtext_col = [i for i, s in enumerate(table.columns) if 'Banner Name' == s][0] + table_loc[1]
-        banner_qtext_cell = xw.utility.xl_rowcol_to_cell(row=table_loc[0]+1, col = banner_qtext_col)
+        banner_qtext_col = [i for i, s in enumerate(table.columns) if 'Banner QText' == s][0] + table_loc[1] # In the OG TrendFinder, Banner Name is used instead of QText
+        stem_qtext_col = [i for i, s in enumerate(table.columns) if 'Stem Name' == s][0] + table_loc[1]
+        banner_qtext_cell = xw.utility.xl_rowcol_to_cell(row=table_loc[0]+1, col = banner_qtext_col) # This dictates first half of chart title in Excel (i.e. the qtext) 
             
         if table['Stem QText'].iloc[0] == 'Topline':
             chart_title_formula = '=' + sheet_reference + banner_qtext_cell + '&" - US Adults"'
         else:
-            stem_qtext_col = banner_qtext_col - 1 
+            
             stem_qtext_cell = xw.utility.xl_rowcol_to_cell(row=table_loc[0]+1, col = stem_qtext_col)
-            chart_title_formula = '=' + sheet_reference + banner_qtext_cell + '&" cut by "&' + sheet_reference + stem_qtext_cell  
+            chart_title_formula = '=' + sheet_reference + banner_qtext_cell + '&" - "&' + sheet_reference + stem_qtext_cell  
         
         chart_title_cell = xw.utility.xl_rowcol_to_cell(row = chart_row, col = chart_col)
         
@@ -126,6 +126,12 @@ def writeExcelAncestry(df, chart_references_py, file_name_py):
         
     
     sheet_number = 0
+     # sheet_name_list not part of normal TrendFinder
+    sheet_name_list = ["Ancestry is a brand for me", "Brings families together", "Explore FH in the next month", "Have used a FH sub", 
+    "Have used a DNA Kit", "DNA kit popularity", "Privacy - Ancestry", "Privacy - 23andMe", "US Economy in 6 months", "Personal finance in 6 months", 
+    "Concern public spaces", "Length of self isolation", "Comfortable shopping in stores", "Comfortable eating @ restaurant", "Comfortable traveling", 
+    "Comfortable going to work", "Comfortable going public events", "Job impact COVID", "Hours of TV watched", "Thought about family", "Connected with family", 
+    "Relflective Introspective"]
     
     # I don't believe there's a good reason to keep the answer IDs in the metadata information after this step, at least from the perspective of making this program function; it could help with troubleshooting or investigations later
     metadata_cols = ['Stem QID', 'Stem Group ID', 'Stem QText',
@@ -160,7 +166,7 @@ def writeExcelAncestry(df, chart_references_py, file_name_py):
     
     # Uses the rows of chart_references_py (table passed from R) to iterate through
     for indices, row in chart_references_py.iterrows():
-        
+        truncated_sheet_name = sheet_name_list[sheet_number] # Not part of normal TrendFinder
         sheet_number += 1 # Number of tab in Excel
         
         stem_q = row[0]
@@ -193,8 +199,11 @@ def writeExcelAncestry(df, chart_references_py, file_name_py):
             nrow_banner_df = banner_df.shape[0]
             # banner_qtext = banner_df['Banner QText'].iloc[0]
             
-            sheet_number_string = str(sheet_number)
-            truncated_sheet_name = sheet_number_string + "-" + (str(banner_q))[0:(31-1-len(sheet_number_string))]
+            ### Next two lines are used in normal TrendFinder
+            # sheet_number_string = str(sheet_number)
+            # truncated_sheet_name = sheet_number_string + "-" + (str(banner_q))[0:(31-1-len(sheet_number_string))]
+            
+
             
             next_chart_number += 1
         
