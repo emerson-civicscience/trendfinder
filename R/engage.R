@@ -32,7 +32,8 @@ engage <- function(bi.user = NULL,
 									 python_loc = NULL,
 									 plot_stem_override = FALSE,
 									 letter_stats_output = FALSE,
-									 ancestry_output = FALSE){
+									 ancestry_output = FALSE,
+									 make_charts = FALSE){
 
 	stem_questions <- unique(stem_questions)
 	banner_questions <- unique(banner_questions)
@@ -480,12 +481,14 @@ engage <- function(bi.user = NULL,
 	# write.table(outputFormatted, file=paste0(fileName,'.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 	# write.table(outputResults, file=paste0('~/TrendFinder/Outputs/2021-11-09/outputResults.tsv'), quote=TRUE, sep='\t', row.names=FALSE)
 	
-	TFmakeCharts(input_TFmakeCharts,
-	             segment_names = segment_names,
-	             use_tags = use_tags,
-	             must_plot = must_plot,
-	             plot_all = plot_all,
-	             python_loc = python_loc,
-	             ancestry_output = ancestry_output)
-
+	if(make_charts){
+	  TFmakeCharts(input_TFmakeCharts,
+	               segment_names = segment_names,
+	               use_tags = use_tags,
+	               must_plot = must_plot,
+	               plot_all = plot_all,
+	               python_loc = python_loc,
+	               ancestry_output = ancestry_output)
+	}
+	
 	}
