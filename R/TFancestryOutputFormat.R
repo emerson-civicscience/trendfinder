@@ -47,8 +47,10 @@ TFancestryOutputFormat <- function(outputFormatted, data_start_dates, data_end_d
   ancestry_data <- merge(ancestry_percents, ancestry_responses)
   ancestry_data <- merge(ancestry_data, ancestry_totals)
   ancestry_data <- merge(ancestry_data, ancestry_notes)
-  ancestry_data$`Apr 2022 - Notes` <- ""
-  ancestry_data$`May 2022 - Notes` <- ""
+  # Must automate the note making process
+  ancestry_data$`Apr 22 - Notes` <- ""
+  ancestry_data$`May 22 - Notes` <- ""
+  ancestry_data$`Jun 22 - Notes` <- ""
   
   ancestry_data <- ancestry_data[, c(3, 4, 1, 5:11, 2, 12:ncol(ancestry_data))]
   
